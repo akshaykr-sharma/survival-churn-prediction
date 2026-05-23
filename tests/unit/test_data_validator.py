@@ -1,10 +1,10 @@
 """Unit tests for DataValidator."""
 
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
 
-from src.data.data_validator import DataValidator, DataValidationError
+from src.data.data_validator import DataValidationError, DataValidator
 
 
 @pytest.mark.unit

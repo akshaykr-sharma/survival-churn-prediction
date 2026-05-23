@@ -1,0 +1,26 @@
+[flake8]
+max-line-length = 100
+extend-ignore =
+    # whitespace before ':' — conflicts with black
+    E203,
+    # line break before binary operator — conflicts with black
+    W503
+
+# E402: module level import not at top of file
+#   CLI entry points must call sys.path.insert(0, ...) before importing
+#   project modules.  Suppress E402 only for those files, not project-wide.
+per-file-ignores =
+    pipelines/scripts/*.py:E402
+    pipelines/airflow/dags/*.py:E402
+
+exclude =
+    .git,
+    __pycache__,
+    churn_pred_venv,
+    .venv,
+    venv,
+    build,
+    dist,
+    .eggs,
+    mlruns,
+    data

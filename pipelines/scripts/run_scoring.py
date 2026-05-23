@@ -13,8 +13,8 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.scoring.batch_scorer import BatchScorer
 from src.monitoring.drift_detector import DriftDetector
+from src.scoring.batch_scorer import BatchScorer
 from src.utils.logger import configure_logging, get_logger
 from src.utils.spark_utils import get_spark_session, stop_spark
 

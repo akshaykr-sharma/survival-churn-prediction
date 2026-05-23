@@ -1,8 +1,8 @@
 """Unit tests for DriftDetector."""
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 
 from src.monitoring.drift_detector import DriftDetector
 

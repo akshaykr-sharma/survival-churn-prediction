@@ -24,13 +24,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-from lifelines import (
-    LogLogisticAFTFitter,
-    LogNormalAFTFitter,
-    WeibullAFTFitter,
-)
+from lifelines import LogLogisticAFTFitter, LogNormalAFTFitter, WeibullAFTFitter
 from lifelines.utils import concordance_index
 
 from src.models.base_model import BaseSurvivalModel

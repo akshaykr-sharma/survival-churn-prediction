@@ -1,8 +1,8 @@
 """Unit tests for KM, Cox PH, and parametric survival models."""
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 
 
 @pytest.mark.unit
@@ -131,8 +131,9 @@ class TestCoxPH:
             assert col in hr.columns
 
     def test_model_params_serialisable(self, train_test_split):
-        from src.models.cox_ph import CoxPHModel
         import json
+
+        from src.models.cox_ph import CoxPHModel
 
         train, _ = train_test_split
         cox = CoxPHModel(penalizer=0.1)

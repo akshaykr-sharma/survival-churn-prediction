@@ -11,6 +11,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 from lifelines.utils import concordance_index
 

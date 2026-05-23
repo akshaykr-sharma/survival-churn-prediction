@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Any, Optional
 
 import pandas as pd
@@ -47,12 +46,14 @@ class BaseSurvivalModel(ABC):
         return self._fitted
 
     def survival_at_horizons(
-        self, df: pd.DataFrame, horizons: list[int] = [30, 60, 90, 180]
+        self, df: pd.DataFrame, horizons: Optional[list[int]] = None
     ) -> pd.DataFrame:
         """
         Return S(t) at specific time horizons for each individual.
         Output columns: customer_id (if present), survival_prob_Xd for each horizon.
         """
+        if horizons is None:
+            horizons = [30, 60, 90, 180]
         sf = self.predict_survival_function(df)
         result_cols = {}
         for t in horizons:

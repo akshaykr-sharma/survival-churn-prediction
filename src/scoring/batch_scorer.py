@@ -21,14 +21,7 @@ from typing import Optional
 
 import pandas as pd
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql.types import (
-    DoubleType,
-    IntegerType,
-    StringType,
-    StructField,
-    StructType,
-)
+from pyspark.sql.types import DoubleType, StringType, StructField, StructType
 
 from src.utils.logger import get_logger
 from src.utils.mlflow_utils import load_production_model

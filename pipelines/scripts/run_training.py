@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import pickle
 import sys
 import tempfile
 from pathlib import Path
@@ -26,18 +25,18 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.models.kaplan_meier import KaplanMeierModel
 from src.models.cox_ph import CoxPHModel
-from src.models.parametric import fit_all_parametric
+from src.models.kaplan_meier import KaplanMeierModel
 from src.models.model_selector import ModelSelector
+from src.models.parametric import fit_all_parametric
 from src.utils.logger import configure_logging, get_logger
 from src.utils.mlflow_utils import (
-    setup_mlflow,
-    mlflow_run,
-    log_params,
-    log_metrics,
     log_artifact_path,
+    log_metrics,
+    log_params,
+    mlflow_run,
     register_model,
+    setup_mlflow,
 )
 
 log = get_logger(__name__)

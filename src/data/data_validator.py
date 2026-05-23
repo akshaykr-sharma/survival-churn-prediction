@@ -8,7 +8,6 @@ Raises DataValidationError on hard failures; logs warnings on soft checks.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -16,10 +15,10 @@ import pandas as pd
 # pandera.pandas submodule exists in >= 0.18.3; fall back to top-level for older installs
 try:
     import pandera.pandas as pa
-    from pandera.pandas import Column, DataFrameSchema, Check
+    from pandera.pandas import Check, Column, DataFrameSchema
 except ImportError:
     import pandera as pa  # type: ignore[no-redef]
-    from pandera import Column, DataFrameSchema, Check  # type: ignore[no-redef]
+    from pandera import Check, Column, DataFrameSchema  # type: ignore[no-redef]
 
 try:
     from pandera.errors import SchemaError, SchemaErrors

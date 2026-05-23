@@ -13,8 +13,6 @@ use CoxPH for that.
 
 from __future__ import annotations
 
-from itertools import combinations
-from pathlib import Path
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
@@ -214,7 +212,7 @@ class KaplanMeierModel(BaseSurvivalModel):
             raise RuntimeError("Call fit_stratified() first.")
 
         fig, ax = plt.subplots(figsize=(11, 7))
-        for label, kmf in self._stratified_fitters.items():
+        for _label, kmf in self._stratified_fitters.items():
             kmf.plot_survival_function(ax=ax, ci_show=False)
 
         ax.set_title(title or f"KM Survival by {stratify_col}", fontsize=14)

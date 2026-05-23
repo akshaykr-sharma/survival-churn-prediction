@@ -17,8 +17,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import BranchPythonOperator, PythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 
 # ── DAG-level defaults ────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ with DAG(
             check=True,
         )
         # Push C-index for the quality gate below
-        import json, re
+        import re
 
         match = re.search(r'"c_index":\s*([\d.]+)', result.stdout)
         c_index = float(match.group(1)) if match else 0.0

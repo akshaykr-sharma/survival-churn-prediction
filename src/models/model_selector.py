@@ -168,6 +168,7 @@ class ModelSelector:
             fold_train = df.iloc[train_idx]
             fold_val = df.iloc[val_idx]
 
+            model: BaseSurvivalModel  # union type for narrowed branches below
             if model_name == "cox_ph":
                 model = CoxPHModel(penalizer=0.1)
             elif model_name.startswith("parametric_"):

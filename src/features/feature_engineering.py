@@ -13,7 +13,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from pyspark.sql import DataFrame, SparkSession, Window
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import DoubleType, IntegerType
 
@@ -386,4 +386,4 @@ class FeatureEngineeringPipeline:
             and f.name not in ("customer_id", "is_churned", "duration_days", "age_years")
         ]
         fill_dict = {col: 0 for col in fill_zero_cols}
-        return df.fillna(fill_dict)
+        return df.fillna(fill_dict)  # type: ignore[arg-type]
