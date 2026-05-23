@@ -113,10 +113,14 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Generate small sample dataset (5K customers)
+        # --skip-validation: production validator requires 40K+ customers
+        # (DEFAULT_MIN_ROWS). The smoke test only needs to confirm the
+        # generator writes valid Parquet files.
         run: |
           python pipelines/scripts/run_data_generation.py \
             --n-customers 5000 \
-            --seed 99
+            --seed 99 \
+            --skip-validation
 
       - name: Verify output files exist
         run: |

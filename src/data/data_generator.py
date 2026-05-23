@@ -332,8 +332,10 @@ class SyntheticDataGenerator:
                 "warranty_months": warranty_months,
                 "amc_active": amc_active,
                 "is_churned": is_churned,
-                "churn_date": churn_date_series.date,
-                "observation_end_date": observation_end.date,
+                # pd.to_datetime() returns DatetimeIndex (which has .date),
+                # but mypy infers it as ndarray. Runtime is correct.
+                "churn_date": churn_date_series.date,  # type: ignore[attr-defined]
+                "observation_end_date": observation_end.date,  # type: ignore[attr-defined]
                 "duration_days": duration_days.astype(int),
             }
         )

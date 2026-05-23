@@ -20,15 +20,20 @@ def _configure_windows_spark_env() -> None:
     This function reads User-scope values directly from the registry so the
     script works regardless of how the shell session was opened.
     """
-    # 1. Pull User-scope env vars from the Windows registry
+    # 1. Pull User-scope env vars from the Windows registry.
+    # winreg is Windows-only; mypy on Linux/Mac will flag these attribute
+    # accesses, but the surrounding `if sys.platform == "win32"` guarantees
+    # this function is never called off-Windows.
     try:
-        import winreg
+        import winreg  # type: ignore[import-not-found]
 
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as _key:
+        with winreg.OpenKey(  # type: ignore[attr-defined]
+            winreg.HKEY_CURRENT_USER, "Environment"  # type: ignore[attr-defined]
+        ) as _key:
             for _var in ("JAVA_HOME", "HADOOP_HOME"):
                 if _var not in os.environ:
                     try:
-                        _val, _ = winreg.QueryValueEx(_key, _var)
+                        _val, _ = winreg.QueryValueEx(_key, _var)  # type: ignore[attr-defined]
                         os.environ[_var] = _val
                     except FileNotFoundError:
                         pass

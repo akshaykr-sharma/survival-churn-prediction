@@ -13,7 +13,7 @@ Uses stratified K-fold CV to account for censoring imbalance across segments.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -168,7 +168,11 @@ class ModelSelector:
             fold_train = df.iloc[train_idx]
             fold_val = df.iloc[val_idx]
 
-            model: BaseSurvivalModel  # union type for narrowed branches below
+            # Both CoxPHModel and ParametricSurvivalModel implement
+            # compute_concordance_index, but KaplanMeierModel (the third
+            # BaseSurvivalModel) doesn't (no covariates → no concordance).
+            # Use a Union of the two covariate-based models for type narrowing.
+            model: Union[CoxPHModel, ParametricSurvivalModel]
             if model_name == "cox_ph":
                 model = CoxPHModel(penalizer=0.1)
             elif model_name.startswith("parametric_"):
