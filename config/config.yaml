@@ -1,0 +1,133 @@
+# ── XYZ Churn Survival — master configuration ────────────────────────────────
+project:
+  name: xyz-churn-survival
+  version: "1.0.0"
+  market: india
+  product_vertical: prebuilt_pcs
+
+# ── Observation window ───────────────────────────────────────────────────────
+observation:
+  start_date: "2022-01-01"
+  end_date:   "2024-12-31"
+  train_cutoff_date: "2024-06-30"   # data after this is held-out / scoring
+  scoring_as_of_date: "2024-12-31"
+
+# ── Churn definition ─────────────────────────────────────────────────────────
+churn:
+  # A customer is churned when ALL three conditions hold simultaneously:
+  #   1. days_since_last_transaction  >= transaction_silence_days
+  #   2. weekly_web_sessions_90d_avg  <= web_activity_threshold
+  #   3. days_since_last_support_contact >= support_silence_days
+  transaction_silence_days: 270     # ~9 months no purchase/service
+  web_activity_threshold: 0.5       # <0.5 sessions/week trailing 90d avg
+  support_silence_days: 180         # 6 months no support contact
+  observation_lag_days: 30          # grace period before labelling
+
+# ── Data generation ──────────────────────────────────────────────────────────
+data_generation:
+  n_customers: 55000
+  random_seed: 42
+  output_dir: data/raw
+  formats: [parquet]
+  # Approximate record counts
+  transactions_per_customer_mean: 4.2
+  clickstream_events_per_customer_mean: 120
+  support_tickets_per_customer_mean: 1.8
+  churn_rate_target: 0.30           # ~30% churn in the cohort
+
+# ── Feature engineering ──────────────────────────────────────────────────────
+features:
+  lookback_windows_days: [30, 60, 90, 180, 365]
+  rfm_recency_unit: days
+  activity_aggregation_granularity: weekly
+  output_dir: data/processed
+
+# ── Model configuration ──────────────────────────────────────────────────────
+models:
+  kaplan_meier:
+    confidence_interval_alpha: 0.05
+    timeline_max_days: 1095         # 3 years
+    stratify_by: [segment, product_category, city_tier]
+
+  cox_ph:
+    penalizer: 0.1                  # L2 ridge penalty
+    l1_ratio: 0.0                   # pure ridge; set >0 for elastic-net
+    baseline_estimation_method: breslow
+    tvc_covariates:                 # time-varying covariates
+      - monthly_sessions_trend
+      - monthly_transaction_amount
+      - support_ticket_count_30d
+    max_steps: 500
+    step_size: 0.5
+
+  weibull:
+    penalizer: 0.0
+    fit_intercept: true
+
+  log_normal:
+    penalizer: 0.0
+    fit_intercept: true
+
+  log_logistic:
+    penalizer: 0.0
+    fit_intercept: true
+
+  model_selection:
+    primary_metric: concordance_index  # C-index
+    secondary_metric: aic
+    cv_folds: 5
+    cv_stratify_column: segment
+
+# ── MLflow ───────────────────────────────────────────────────────────────────
+mlflow:
+  tracking_uri: ./mlruns              # file:// for local; set to http://mlflow-server for prod
+  experiment_name: xyz-churn-survival
+  registered_model_name: xyz_churn_cox_ph
+  artifact_location: ./mlruns/artifacts
+
+# ── Batch scoring ─────────────────────────────────────────────────────────────
+scoring:
+  model_stage: Production            # pull from MLflow model registry
+  output_dir: data/processed/scores
+  output_format: parquet
+  score_columns:
+    - customer_id
+    - score_date
+    - survival_prob_30d
+    - survival_prob_60d
+    - survival_prob_90d
+    - survival_prob_180d
+    - churn_risk_segment       # High / Medium / Low
+    - median_survival_days
+  thresholds:
+    high_risk:   0.30          # survival_prob_90d < 0.30 → High Risk
+    medium_risk: 0.60          # survival_prob_90d < 0.60 → Medium Risk
+
+# ── Spark ─────────────────────────────────────────────────────────────────────
+spark:
+  app_name: xyz-churn-survival
+  master: local[*]             # change to yarn / k8s for cluster
+  executor_memory: 4g
+  driver_memory: 4g
+  executor_cores: 2
+  default_parallelism: 8
+  shuffle_partitions: 50
+  log_level: WARN
+
+# ── Airflow ───────────────────────────────────────────────────────────────────
+airflow:
+  schedule_training:   "0 2 1 * *"    # 1st of each month at 02:00 UTC
+  schedule_scoring:    "0 4 * * *"    # daily at 04:00 UTC
+  schedule_validation: "0 1 * * *"    # daily at 01:00 UTC
+  retries: 2
+  retry_delay_minutes: 15
+  email_on_failure: true
+  email: ["data-science@xyz.in", "mlops@xyz.in"]
+
+# ── Monitoring ────────────────────────────────────────────────────────────────
+monitoring:
+  psi_threshold: 0.2              # alert if PSI > 0.2 (significant shift)
+  cindex_degradation_threshold: 0.02   # alert if C-index drops >2pp vs baseline
+  score_distribution_check: true
+  feature_drift_check: true
+  alert_channels: ["email", "pagerduty"]

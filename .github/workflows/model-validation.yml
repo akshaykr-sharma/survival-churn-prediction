@@ -1,0 +1,95 @@
+name: Model Validation Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/models/**"
+      - "src/features/**"
+      - "config/model_config.yaml"
+      - "config/feature_config.yaml"
+
+jobs:
+  model-validation:
+    name: Validate Survival Model Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Set up Java (PySpark)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate validation dataset (10K customers)
+        run: |
+          python pipelines/scripts/run_data_generation.py \
+            --n-customers 10000 \
+            --seed 2024 \
+            --skip-validation
+
+      - name: Run feature engineering
+        run: |
+          python pipelines/scripts/run_feature_engineering.py \
+            --config config/config.yaml \
+            --mode train
+
+      - name: Run model training and evaluate
+        id: model_eval
+        run: |
+          python pipelines/scripts/run_training.py \
+            --config config/config.yaml \
+            --run-date "ci-validation" 2>&1 | tee training_output.txt
+
+          # Extract C-index from output
+          C_INDEX=$(grep -oP '"cox_concordance_index":\s*\K[\d.]+' training_output.txt | tail -1)
+          echo "c_index=$C_INDEX" >> $GITHUB_OUTPUT
+          echo "Cox PH C-index on validation set: $C_INDEX"
+
+      - name: Quality gate — C-index must be >= 0.68
+        run: |
+          C_INDEX="${{ steps.model_eval.outputs.c_index }}"
+          THRESHOLD=0.68
+          echo "C-index: $C_INDEX | Threshold: $THRESHOLD"
+          python -c "
+          c = float('${C_INDEX}' or '0')
+          t = float('${THRESHOLD}')
+          if c < t:
+              raise SystemExit(f'FAIL: C-index {c:.4f} < threshold {t}. Model not ready.')
+          print(f'PASS: C-index {c:.4f} >= threshold {t}')
+          "
+
+      - name: Upload training logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: model-validation-logs-${{ github.sha }}
+          path: training_output.txt
+          retention-days: 14
+
+      - name: Comment C-index on PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const cIndex = '${{ steps.model_eval.outputs.c_index }}';
+            const status = parseFloat(cIndex) >= 0.68 ? '✅ PASS' : '❌ FAIL';
+            const body = `## Model Validation Results\n\n| Metric | Value | Threshold | Status |\n|--------|-------|-----------|--------|\n| Cox PH C-index | \`${cIndex}\` | 0.68 | ${status} |`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });

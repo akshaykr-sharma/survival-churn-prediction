@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "xyz-churn-survival"
+version = "1.0.0"
+description = "Production-grade survival analysis churn model for XYZ India PC market"
+authors = [{ name = "XYZ Data Science Team" }]
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "pipelines*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+markers = [
+    "unit: fast unit tests (no Spark, no MLflow)",
+    "integration: slower integration tests (Spark or MLflow required)",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "notebooks/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true

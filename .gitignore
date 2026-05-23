@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+# local virtual environments — never commit
+.venv/
+venv/
+churn_pred_venv/
+.env
+
+# PySpark / Hadoop
+derby.log
+metastore_db/
+spark-warehouse/
+*.log
+
+# Data (never commit raw data to git)
+data/raw/
+data/processed/
+data/schemas/*.json.resolved
+
+# MLflow
+mlruns/
+mlartifacts/
+*.mlmodel
+
+# Airflow
+logs/
+airflow.db
+airflow.cfg
+webserver_config.py
+
+# Notebooks (strip outputs before commit — nbstripout handles this)
+.ipynb_checkpoints/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (NEVER commit)
+*.env
+secrets/
+credentials/

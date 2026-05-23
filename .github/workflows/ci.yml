@@ -1,0 +1,127 @@
+name: CI — Lint, Type-check, Unit Tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── 1. Lint & format check ──────────────────────────────────────────────────
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install lint deps
+        run: pip install black isort flake8 flake8-bugbear
+
+      - name: black — format check
+        run: black src tests pipelines --check --line-length=100
+
+      - name: isort — import order check
+        run: isort src tests pipelines --check-only --profile=black --line-length=100
+
+      - name: flake8 — style check
+        run: flake8 src tests pipelines --max-line-length=100 --extend-ignore=E203,W503
+
+  # ── 2. Type checking ─────────────────────────────────────────────────────────
+  type-check:
+    name: Type Check (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install deps
+        run: pip install -r requirements-dev.txt
+
+      - name: mypy
+        run: mypy src --ignore-missing-imports
+
+  # ── 3. Unit tests ────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install deps
+        run: pip install -r requirements-dev.txt
+
+      - name: Set up Java (required for PySpark)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit -m unit \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --tb=short \
+            -v
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml
+          flags: unit-tests
+          fail_ci_if_error: false
+
+  # ── 4. Data generation smoke test ────────────────────────────────────────────
+  data-smoke-test:
+    name: Data Generation Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Generate small sample dataset (5K customers)
+        run: |
+          python pipelines/scripts/run_data_generation.py \
+            --n-customers 5000 \
+            --seed 99
+
+      - name: Verify output files exist
+        run: |
+          test -f data/raw/customers/part-00000.parquet
+          test -f data/raw/transactions/part-00000.parquet
+          test -f data/raw/clickstream/part-00000.parquet
+          test -f data/raw/support_tickets/part-00000.parquet
+          echo "All four raw Parquet files present."

@@ -1,0 +1,97 @@
+name: Batch Scoring Trigger
+
+on:
+  # Manual trigger from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      score_date:
+        description: "Scoring as-of date (YYYY-MM-DD, defaults to today)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run (validate only, do not write scores)"
+        required: false
+        type: boolean
+        default: false
+
+  # Scheduled daily trigger (04:00 UTC)
+  schedule:
+    - cron: "0 4 * * *"
+
+jobs:
+  batch-score:
+    name: Daily Batch Survival Scoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Set up Java (PySpark)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Resolve score date
+        id: date
+        run: |
+          SCORE_DATE="${{ inputs.score_date }}"
+          if [ -z "$SCORE_DATE" ]; then
+            SCORE_DATE=$(date -u +"%Y-%m-%d")
+          fi
+          echo "score_date=$SCORE_DATE" >> $GITHUB_OUTPUT
+          echo "Scoring as-of date: $SCORE_DATE"
+
+      - name: Refresh feature matrix
+        run: |
+          python pipelines/scripts/run_feature_engineering.py \
+            --config config/config.yaml \
+            --mode score \
+            --as-of-date "${{ steps.date.outputs.score_date }}"
+
+      - name: Run batch scoring
+        if: ${{ !inputs.dry_run }}
+        run: |
+          python pipelines/scripts/run_scoring.py \
+            --config config/config.yaml \
+            --score-date "${{ steps.date.outputs.score_date }}"
+
+      - name: Validate scores & drift check
+        id: drift_check
+        run: |
+          OUTPUT=$(python pipelines/scripts/run_scoring.py \
+            --config config/config.yaml \
+            --validate-only \
+            --score-date "${{ steps.date.outputs.score_date }}")
+          echo "$OUTPUT"
+          DRIFT=$(echo "$OUTPUT" | python -c "import sys,json; d=json.loads(sys.stdin.read()); print(d.get('drift_detected','false'))")
+          echo "drift_detected=$DRIFT" >> $GITHUB_OUTPUT
+
+      - name: Alert on drift
+        if: steps.drift_check.outputs.drift_detected == 'true'
+        run: |
+          echo "::warning::Score distribution drift detected on ${{ steps.date.outputs.score_date }}. Retraining may be needed."
+
+      - name: Upload scoring artefacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: batch-scores-${{ steps.date.outputs.score_date }}
+          path: data/processed/scores/
+          retention-days: 30
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Batch scoring pipeline FAILED for ${{ steps.date.outputs.score_date }}"

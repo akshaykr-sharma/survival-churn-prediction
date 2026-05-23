@@ -1,0 +1,252 @@
+# ── Feature catalogue ────────────────────────────────────────────────────────
+# Each feature has: name, source_table, description, dtype, nullable, category
+
+static_features:
+  - name: tenure_days
+    source: customers
+    description: Days from first_purchase_date to observation_end_date
+    dtype: int
+    nullable: false
+    category: customer_lifecycle
+
+  - name: age_years
+    source: customers
+    description: Customer age at registration
+    dtype: int
+    nullable: true
+    category: demographics
+
+  - name: segment
+    source: customers
+    description: "Customer segment: student / gamer / professional / smb / creative"
+    dtype: string
+    nullable: false
+    category: demographics
+
+  - name: city_tier
+    source: customers
+    description: "India city tier: 1=metro, 2=major, 3=smaller"
+    dtype: int
+    nullable: false
+    category: geography
+
+  - name: product_category
+    source: customers
+    description: "budget_pc | mid_range_pc | gaming_pc | workstation"
+    dtype: string
+    nullable: false
+    category: product
+
+  - name: product_price_inr
+    source: customers
+    description: Original purchase price in INR
+    dtype: float
+    nullable: false
+    category: product
+
+  - name: warranty_months
+    source: customers
+    description: Warranty period purchased (12 or 24 months)
+    dtype: int
+    nullable: false
+    category: product
+
+  - name: amc_active
+    source: customers
+    description: Annual Maintenance Contract currently active (1/0)
+    dtype: int
+    nullable: false
+    category: product
+
+  - name: acquisition_channel
+    source: customers
+    description: "organic_search | paid_search | social_media | referral | retail_store | email_campaign"
+    dtype: string
+    nullable: false
+    category: acquisition
+
+transactional_features:
+  - name: total_transactions
+    source: transactions
+    description: Cumulative transaction count up to scoring date
+    dtype: int
+    nullable: false
+    category: rfm
+
+  - name: total_spend_inr
+    source: transactions
+    description: Total spend in INR up to scoring date
+    dtype: float
+    nullable: false
+    category: rfm
+
+  - name: days_since_last_transaction
+    source: transactions
+    description: Days between scoring date and most recent transaction
+    dtype: int
+    nullable: false
+    category: rfm
+
+  - name: avg_transaction_value_inr
+    source: transactions
+    description: Mean transaction value in INR
+    dtype: float
+    nullable: true
+    category: rfm
+
+  - name: transaction_frequency_30d
+    source: transactions
+    description: Number of transactions in trailing 30 days
+    dtype: int
+    nullable: false
+    category: rfm_windowed
+
+  - name: transaction_frequency_90d
+    source: transactions
+    description: Number of transactions in trailing 90 days
+    dtype: int
+    nullable: false
+    category: rfm_windowed
+
+  - name: transaction_amount_30d
+    source: transactions
+    description: Total spend (INR) in trailing 30 days
+    dtype: float
+    nullable: false
+    category: rfm_windowed
+
+  - name: transaction_amount_90d
+    source: transactions
+    description: Total spend (INR) in trailing 90 days
+    dtype: float
+    nullable: false
+    category: rfm_windowed
+
+behavioral_features:
+  - name: avg_weekly_sessions_30d
+    source: clickstream
+    description: Mean website sessions per week (trailing 30d)
+    dtype: float
+    nullable: false
+    category: web_engagement
+
+  - name: avg_weekly_sessions_90d
+    source: clickstream
+    description: Mean website sessions per week (trailing 90d)
+    dtype: float
+    nullable: false
+    category: web_engagement
+
+  - name: avg_session_duration_minutes
+    source: clickstream
+    description: Mean session duration in minutes (trailing 90d)
+    dtype: float
+    nullable: true
+    category: web_engagement
+
+  - name: product_comparison_events_30d
+    source: clickstream
+    description: Count of product comparison page events (trailing 30d)
+    dtype: int
+    nullable: false
+    category: web_engagement
+
+  - name: wishlist_add_events_30d
+    source: clickstream
+    description: Count of wishlist-add events (trailing 30d)
+    dtype: int
+    nullable: false
+    category: web_engagement
+
+  - name: session_frequency_trend_90d
+    source: clickstream
+    description: Linear slope of weekly session counts over trailing 90d (neg = declining)
+    dtype: float
+    nullable: false
+    category: trend
+
+  - name: days_since_last_web_visit
+    source: clickstream
+    description: Days between scoring date and most recent web session
+    dtype: int
+    nullable: false
+    category: recency
+
+support_features:
+  - name: total_support_tickets
+    source: support_tickets
+    description: Lifetime count of support tickets raised
+    dtype: int
+    nullable: false
+    category: support
+
+  - name: support_tickets_30d
+    source: support_tickets
+    description: Support tickets raised in trailing 30 days
+    dtype: int
+    nullable: false
+    category: support
+
+  - name: support_tickets_90d
+    source: support_tickets
+    description: Support tickets raised in trailing 90 days
+    dtype: int
+    nullable: false
+    category: support
+
+  - name: avg_resolution_days
+    source: support_tickets
+    description: Mean days to ticket resolution
+    dtype: float
+    nullable: true
+    category: support
+
+  - name: escalation_rate
+    source: support_tickets
+    description: Fraction of tickets that were escalated
+    dtype: float
+    nullable: true
+    category: support
+
+  - name: days_since_last_support_contact
+    source: support_tickets
+    description: Days since last support interaction
+    dtype: int
+    nullable: false
+    category: support
+
+derived_features:
+  - name: rfm_score
+    source: derived
+    description: Combined RFM score (1-5 each dimension, sum 3-15)
+    dtype: int
+    nullable: false
+    category: derived
+
+  - name: engagement_score
+    source: derived
+    description: "Composite web + support engagement score [0,1]"
+    dtype: float
+    nullable: false
+    category: derived
+
+  - name: warranty_remaining_days
+    source: derived
+    description: Days of warranty cover remaining at scoring date
+    dtype: int
+    nullable: false
+    category: derived
+
+  - name: is_warranty_expired
+    source: derived
+    description: 1 if warranty has expired by scoring date
+    dtype: int
+    nullable: false
+    category: derived
+
+  - name: months_since_last_transaction
+    source: derived
+    description: days_since_last_transaction / 30.44
+    dtype: float
+    nullable: false
+    category: derived
