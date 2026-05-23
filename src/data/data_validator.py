@@ -25,6 +25,7 @@ try:
     from pandera.errors import SchemaError, SchemaErrors
 except ImportError:  # older pandera only has SchemaError
     from pandera.errors import SchemaError  # type: ignore[assignment]
+
     SchemaErrors = SchemaError  # type: ignore[misc,assignment]
 
 from src.utils.logger import get_logger
@@ -50,34 +51,38 @@ class ValidationReport:
 
 CUSTOMERS_SCHEMA = DataFrameSchema(
     columns={
-        "customer_id":          Column(str, nullable=False, unique=True),
-        "registration_date":    Column(pa.DateTime, nullable=False,
-                                       checks=Check.greater_than_or_equal_to(pd.Timestamp("2022-01-01"))),
-        "first_purchase_date":  Column(pa.DateTime, nullable=False),
-        "segment":              Column(str, nullable=False,
-                                       checks=Check.isin(["student", "gamer", "professional", "smb", "creative"])),
-        "city":                 Column(str, nullable=False),
-        "state":                Column(str, nullable=False),
-        "city_tier":            Column(int, nullable=False,
-                                       checks=Check.isin([1, 2, 3])),
-        "gender":               Column(str, nullable=False,
-                                       checks=Check.isin(["M", "F", "Other"])),
-        "age_years":            Column("Int64", nullable=True,
-                                       checks=[Check.greater_than_or_equal_to(18),
-                                               Check.less_than_or_equal_to(80)]),
-        "acquisition_channel":  Column(str, nullable=False),
-        "product_category":     Column(str, nullable=False,
-                                       checks=Check.isin(["budget_pc", "mid_range_pc", "gaming_pc", "workstation"])),
-        "product_price_inr":    Column(float, nullable=False,
-                                       checks=Check.greater_than(0)),
-        "warranty_months":      Column(int, nullable=False,
-                                       checks=Check.isin([12, 24])),
-        "amc_active":           Column(int, nullable=False,
-                                       checks=Check.isin([0, 1])),
-        "is_churned":           Column(int, nullable=False,
-                                       checks=Check.isin([0, 1])),
-        "duration_days":        Column(int, nullable=False,
-                                       checks=Check.greater_than(0)),
+        "customer_id": Column(str, nullable=False, unique=True),
+        "registration_date": Column(
+            pa.DateTime,
+            nullable=False,
+            checks=Check.greater_than_or_equal_to(pd.Timestamp("2022-01-01")),
+        ),
+        "first_purchase_date": Column(pa.DateTime, nullable=False),
+        "segment": Column(
+            str,
+            nullable=False,
+            checks=Check.isin(["student", "gamer", "professional", "smb", "creative"]),
+        ),
+        "city": Column(str, nullable=False),
+        "state": Column(str, nullable=False),
+        "city_tier": Column(int, nullable=False, checks=Check.isin([1, 2, 3])),
+        "gender": Column(str, nullable=False, checks=Check.isin(["M", "F", "Other"])),
+        "age_years": Column(
+            "Int64",
+            nullable=True,
+            checks=[Check.greater_than_or_equal_to(18), Check.less_than_or_equal_to(80)],
+        ),
+        "acquisition_channel": Column(str, nullable=False),
+        "product_category": Column(
+            str,
+            nullable=False,
+            checks=Check.isin(["budget_pc", "mid_range_pc", "gaming_pc", "workstation"]),
+        ),
+        "product_price_inr": Column(float, nullable=False, checks=Check.greater_than(0)),
+        "warranty_months": Column(int, nullable=False, checks=Check.isin([12, 24])),
+        "amc_active": Column(int, nullable=False, checks=Check.isin([0, 1])),
+        "is_churned": Column(int, nullable=False, checks=Check.isin([0, 1])),
+        "duration_days": Column(int, nullable=False, checks=Check.greater_than(0)),
     },
     coerce=True,
     strict=False,
@@ -85,14 +90,12 @@ CUSTOMERS_SCHEMA = DataFrameSchema(
 
 TRANSACTIONS_SCHEMA = DataFrameSchema(
     columns={
-        "transaction_id":   Column(str, nullable=False, unique=True),
-        "customer_id":      Column(str, nullable=False),
+        "transaction_id": Column(str, nullable=False, unique=True),
+        "customer_id": Column(str, nullable=False),
         "transaction_date": Column(pa.DateTime, nullable=False),
         "transaction_type": Column(str, nullable=False),
-        "amount_inr":       Column(float, nullable=False,
-                                   checks=Check.greater_than(0)),
-        "is_returned":      Column(int, nullable=False,
-                                   checks=Check.isin([0, 1])),
+        "amount_inr": Column(float, nullable=False, checks=Check.greater_than(0)),
+        "is_returned": Column(int, nullable=False, checks=Check.isin([0, 1])),
     },
     coerce=True,
     strict=False,
@@ -100,14 +103,12 @@ TRANSACTIONS_SCHEMA = DataFrameSchema(
 
 CLICKSTREAM_SCHEMA = DataFrameSchema(
     columns={
-        "event_id":           Column(str, nullable=False),
-        "customer_id":        Column(str, nullable=False),
-        "event_timestamp":    Column(pa.DateTime, nullable=False),
-        "event_type":         Column(str, nullable=False),
-        "session_duration_s": Column(int, nullable=False,
-                                     checks=Check.greater_than_or_equal_to(0)),
-        "pages_in_session":   Column(int, nullable=False,
-                                     checks=Check.greater_than(0)),
+        "event_id": Column(str, nullable=False),
+        "customer_id": Column(str, nullable=False),
+        "event_timestamp": Column(pa.DateTime, nullable=False),
+        "event_type": Column(str, nullable=False),
+        "session_duration_s": Column(int, nullable=False, checks=Check.greater_than_or_equal_to(0)),
+        "pages_in_session": Column(int, nullable=False, checks=Check.greater_than(0)),
     },
     coerce=True,
     strict=False,
@@ -115,38 +116,36 @@ CLICKSTREAM_SCHEMA = DataFrameSchema(
 
 SUPPORT_SCHEMA = DataFrameSchema(
     columns={
-        "ticket_id":       Column(str, nullable=False),
-        "customer_id":     Column(str, nullable=False),
-        "ticket_date":     Column(pa.DateTime, nullable=False),
-        "resolution_days": Column(int, nullable=False,
-                                  checks=Check.greater_than_or_equal_to(0)),
-        "is_escalated":    Column(int, nullable=False,
-                                  checks=Check.isin([0, 1])),
-        "is_resolved":     Column(int, nullable=False,
-                                  checks=Check.isin([0, 1])),
+        "ticket_id": Column(str, nullable=False),
+        "customer_id": Column(str, nullable=False),
+        "ticket_date": Column(pa.DateTime, nullable=False),
+        "resolution_days": Column(int, nullable=False, checks=Check.greater_than_or_equal_to(0)),
+        "is_escalated": Column(int, nullable=False, checks=Check.isin([0, 1])),
+        "is_resolved": Column(int, nullable=False, checks=Check.isin([0, 1])),
     },
     coerce=True,
     strict=False,
 )
 
 SCHEMA_MAP = {
-    "customers":      CUSTOMERS_SCHEMA,
-    "transactions":   TRANSACTIONS_SCHEMA,
-    "clickstream":    CLICKSTREAM_SCHEMA,
+    "customers": CUSTOMERS_SCHEMA,
+    "transactions": TRANSACTIONS_SCHEMA,
+    "clickstream": CLICKSTREAM_SCHEMA,
     "support_tickets": SUPPORT_SCHEMA,
 }
 
 
 # ── Validator class ───────────────────────────────────────────────────────────
 
+
 class DataValidator:
     """Validates raw datasets before they enter the feature-engineering pipeline."""
 
     # Default minimums for production; tests can pass a smaller override via min_row_overrides
     DEFAULT_MIN_ROWS = {
-        "customers":      40_000,
-        "transactions":   100_000,
-        "clickstream":    400_000,
+        "customers": 40_000,
+        "transactions": 100_000,
+        "clickstream": 400_000,
         "support_tickets": 50_000,
     }
 
@@ -164,7 +163,9 @@ class DataValidator:
         # 1. Schema validation
         schema = SCHEMA_MAP.get(dataset_name)
         if schema is None:
-            report.warnings.append(f"No Pandera schema registered for '{dataset_name}' — skipping schema check.")
+            report.warnings.append(
+                f"No Pandera schema registered for '{dataset_name}' — skipping schema check."
+            )
         else:
             try:
                 schema.validate(df, lazy=True)
@@ -199,7 +200,9 @@ class DataValidator:
                     report.passed = False
                     report.errors.append(f"{len(orphan_ids)} orphan customer_ids ({pct:.2f}%)")
                 else:
-                    report.warnings.append(f"{len(orphan_ids)} orphan customer_ids ({pct:.2f}%) — within tolerance.")
+                    report.warnings.append(
+                        f"{len(orphan_ids)} orphan customer_ids ({pct:.2f}%) — within tolerance."
+                    )
 
         # 5. Dataset-specific statistical checks
         if dataset_name == "customers":

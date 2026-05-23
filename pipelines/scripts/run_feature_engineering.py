@@ -21,10 +21,13 @@ log = get_logger(__name__)
 def parse_args():
     parser = argparse.ArgumentParser(description="XYZ churn feature engineering")
     parser.add_argument("--config", default="config/config.yaml")
-    parser.add_argument("--mode", choices=["train", "score"], default="train",
-                        help="train: use train_cutoff_date; score: use scoring_as_of_date")
-    parser.add_argument("--as-of-date", default=None,
-                        help="Override as_of_date (YYYY-MM-DD)")
+    parser.add_argument(
+        "--mode",
+        choices=["train", "score"],
+        default="train",
+        help="train: use train_cutoff_date; score: use scoring_as_of_date",
+    )
+    parser.add_argument("--as-of-date", default=None, help="Override as_of_date (YYYY-MM-DD)")
     return parser.parse_args()
 
 

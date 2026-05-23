@@ -23,6 +23,7 @@ def _configure_windows_spark_env() -> None:
     # 1. Pull User-scope env vars from the Windows registry
     try:
         import winreg
+
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as _key:
             for _var in ("JAVA_HOME", "HADOOP_HOME"):
                 if _var not in os.environ:
@@ -134,7 +135,9 @@ def read_parquet(spark: SparkSession, path: str):
     return spark.read.parquet(path)
 
 
-def write_parquet(df, path: str, mode: str = "overwrite", partitions: Optional[list] = None) -> None:
+def write_parquet(
+    df, path: str, mode: str = "overwrite", partitions: Optional[list] = None
+) -> None:
     """Write DataFrame as snappy-compressed parquet."""
     log.info("Writing parquet", path=path, mode=mode, partitions=partitions)
     writer = df.write.mode(mode)

@@ -98,9 +98,7 @@ class DriftDetector:
         )
         return report
 
-    def _numeric_drift(
-        self, ref: pd.Series, cur: pd.Series, col: str
-    ) -> dict:
+    def _numeric_drift(self, ref: pd.Series, cur: pd.Series, col: str) -> dict:
         ref_clean = ref.dropna()
         cur_clean = cur.dropna()
 
@@ -108,19 +106,17 @@ class DriftDetector:
         ks_stat, ks_pval = ks_2samp(ref_clean, cur_clean)
 
         return {
-            "feature":   col,
-            "type":      "numeric",
-            "psi":       round(psi, 4),
-            "ks_stat":   round(float(ks_stat), 4),
+            "feature": col,
+            "type": "numeric",
+            "psi": round(psi, 4),
+            "ks_stat": round(float(ks_stat), 4),
             "ks_pvalue": round(float(ks_pval), 4),
             "chi2_stat": None,
             "chi2_pvalue": None,
             "is_drifted": (psi > self.psi_threshold) or (ks_pval < self.ks_alpha),
         }
 
-    def _categorical_drift(
-        self, ref: pd.Series, cur: pd.Series, col: str
-    ) -> dict:
+    def _categorical_drift(self, ref: pd.Series, cur: pd.Series, col: str) -> dict:
         categories = set(ref.dropna().unique()) | set(cur.dropna().unique())
         ref_counts = ref.value_counts().reindex(categories, fill_value=0)
         cur_counts = cur.value_counts().reindex(categories, fill_value=0)
@@ -131,12 +127,12 @@ class DriftDetector:
         psi = self._psi_categorical(ref_counts, cur_counts)
 
         return {
-            "feature":    col,
-            "type":       "categorical",
-            "psi":        round(psi, 4),
-            "ks_stat":    None,
-            "ks_pvalue":  None,
-            "chi2_stat":  round(float(chi2), 4),
+            "feature": col,
+            "type": "categorical",
+            "psi": round(psi, 4),
+            "ks_stat": None,
+            "ks_pvalue": None,
+            "chi2_stat": round(float(chi2), 4),
             "chi2_pvalue": round(float(pval), 4),
             "is_drifted": (psi > self.psi_threshold) or (pval < self.ks_alpha),
         }
@@ -174,8 +170,8 @@ class DriftDetector:
         ks_stat, ks_pval = ks_2samp(ref_scores.dropna(), cur_scores.dropna())
         psi = self._psi(ref_scores.dropna(), cur_scores.dropna())
         return {
-            "psi":        round(psi, 4),
-            "ks_stat":    round(float(ks_stat), 4),
-            "ks_pvalue":  round(float(ks_pval), 4),
+            "psi": round(psi, 4),
+            "ks_stat": round(float(ks_stat), 4),
+            "ks_pvalue": round(float(ks_pval), 4),
             "is_drifted": psi > self.psi_threshold,
         }

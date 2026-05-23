@@ -23,7 +23,11 @@ import pandas as pd
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
-    DoubleType, IntegerType, StringType, StructField, StructType,
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
 )
 
 from src.utils.logger import get_logger
@@ -32,17 +36,19 @@ from src.utils.spark_utils import write_parquet
 
 log = get_logger(__name__)
 
-SCORE_SCHEMA = StructType([
-    StructField("customer_id",        StringType(),  False),
-    StructField("score_date",         StringType(),  False),
-    StructField("survival_prob_30d",  DoubleType(),  True),
-    StructField("survival_prob_60d",  DoubleType(),  True),
-    StructField("survival_prob_90d",  DoubleType(),  True),
-    StructField("survival_prob_180d", DoubleType(),  True),
-    StructField("median_survival_days", DoubleType(), True),
-    StructField("churn_risk_segment", StringType(),  True),
-    StructField("partial_hazard",     DoubleType(),  True),
-])
+SCORE_SCHEMA = StructType(
+    [
+        StructField("customer_id", StringType(), False),
+        StructField("score_date", StringType(), False),
+        StructField("survival_prob_30d", DoubleType(), True),
+        StructField("survival_prob_60d", DoubleType(), True),
+        StructField("survival_prob_90d", DoubleType(), True),
+        StructField("survival_prob_180d", DoubleType(), True),
+        StructField("median_survival_days", DoubleType(), True),
+        StructField("churn_risk_segment", StringType(), True),
+        StructField("partial_hazard", DoubleType(), True),
+    ]
+)
 
 
 class BatchScorer:
@@ -76,8 +82,9 @@ class BatchScorer:
 
     def _load_model(self):
         if self._model is None:
-            log.info("Loading champion model from registry",
-                     name=self.model_name, stage=self.model_stage)
+            log.info(
+                "Loading champion model from registry", name=self.model_name, stage=self.model_stage
+            )
             self._model = load_production_model(self.model_name, self.model_stage)
         return self._model
 
@@ -91,8 +98,7 @@ class BatchScorer:
         lifelines model, and return a Spark DataFrame.  For very large
         datasets (>1M rows), switch to mapInPandas (see _score_large).
         """
-        log.info("Batch scoring started", score_date=self.score_date,
-                 rows=features_df.count())
+        log.info("Batch scoring started", score_date=self.score_date, rows=features_df.count())
 
         model = self._load_model()
 
@@ -136,7 +142,8 @@ class BatchScorer:
 
     def _score_pandas(self, pdf: pd.DataFrame, model) -> pd.DataFrame:
         return _score_partition_pandas(
-            pdf, model,
+            pdf,
+            model,
             self.score_date,
             self.high_risk_threshold,
             self.medium_risk_threshold,
@@ -172,13 +179,13 @@ def _score_partition_pandas(
         idx = sf.index.get_indexer([t], method="nearest")[0]
         return pd.Series(sf.iloc[idx].values, index=pdf.index)
 
-    survival_30d  = get_sf_at(30)
-    survival_60d  = get_sf_at(60)
-    survival_90d  = get_sf_at(90)
+    survival_30d = get_sf_at(30)
+    survival_60d = get_sf_at(60)
+    survival_90d = get_sf_at(90)
     survival_180d = get_sf_at(180)
 
     median_days = cox_model.predict_median_survival(pdf)
-    partial_haz  = cox_model.predict_partial_hazard(pdf)
+    partial_haz = cox_model.predict_partial_hazard(pdf)
 
     # Risk segmentation based on 90d survival probability
     def risk_segment(s90: float) -> str:
@@ -192,17 +199,19 @@ def _score_partition_pandas(
 
     cust_ids = pdf.get("customer_id", pd.Series(range(len(pdf)), dtype=str))
 
-    result = pd.DataFrame({
-        "customer_id":          cust_ids.values,
-        "score_date":           score_date,
-        "survival_prob_30d":    survival_30d.values.astype(float),
-        "survival_prob_60d":    survival_60d.values.astype(float),
-        "survival_prob_90d":    survival_90d.values.astype(float),
-        "survival_prob_180d":   survival_180d.values.astype(float),
-        "median_survival_days": median_days.values.astype(float),
-        "churn_risk_segment":   segments.values,
-        "partial_hazard":       partial_haz.values.astype(float),
-    })
+    result = pd.DataFrame(
+        {
+            "customer_id": cust_ids.values,
+            "score_date": score_date,
+            "survival_prob_30d": survival_30d.values.astype(float),
+            "survival_prob_60d": survival_60d.values.astype(float),
+            "survival_prob_90d": survival_90d.values.astype(float),
+            "survival_prob_180d": survival_180d.values.astype(float),
+            "median_survival_days": median_days.values.astype(float),
+            "churn_risk_segment": segments.values,
+            "partial_hazard": partial_haz.values.astype(float),
+        }
+    )
     return result
 
 

@@ -65,21 +65,20 @@ class FeatureEngineeringPipeline:
         sup = support_tickets.filter(F.col("ticket_date") <= self._as_of_ts)
 
         # Build feature blocks
-        static_feats   = self._static_features(customers)
-        rfm_feats      = self._rfm_features(txn)
-        windowed_feats  = self._windowed_transaction_features(txn)
+        static_feats = self._static_features(customers)
+        rfm_feats = self._rfm_features(txn)
+        windowed_feats = self._windowed_transaction_features(txn)
         behavioral_feats = self._behavioral_features(cs)
-        trend_feats    = self._session_trend_features(cs)
-        support_feats  = self._support_features(sup)
+        trend_feats = self._session_trend_features(cs)
+        support_feats = self._support_features(sup)
 
         # Join everything
         df = (
-            static_feats
-            .join(rfm_feats,       on="customer_id", how="left")
-            .join(windowed_feats,   on="customer_id", how="left")
+            static_feats.join(rfm_feats, on="customer_id", how="left")
+            .join(windowed_feats, on="customer_id", how="left")
             .join(behavioral_feats, on="customer_id", how="left")
-            .join(trend_feats,      on="customer_id", how="left")
-            .join(support_feats,    on="customer_id", how="left")
+            .join(trend_feats, on="customer_id", how="left")
+            .join(support_feats, on="customer_id", how="left")
         )
 
         df = self._derived_features(df)
@@ -97,33 +96,39 @@ class FeatureEngineeringPipeline:
 
     def _static_features(self, customers: DataFrame) -> DataFrame:
         """Pass-through static columns + compute tenure."""
-        return customers.select(
-            "customer_id",
-            "segment",
-            "city_tier",
-            "gender",
-            "age_years",
-            "acquisition_channel",
-            "product_category",
-            "product_price_inr",
-            "warranty_months",
-            "amc_active",
-            "first_purchase_date",
-            "observation_end_date",
-            "is_churned",
-            "duration_days",
-        ).withColumn(
-            "tenure_days",
-            F.datediff(self._as_of_ts, F.col("first_purchase_date")),
-        ).withColumn(
-            "warranty_expiry_date",
-            F.date_add(F.col("first_purchase_date"), F.col("warranty_months") * 30),
-        ).withColumn(
-            "warranty_remaining_days",
-            F.datediff(F.col("warranty_expiry_date"), self._as_of_ts),
-        ).withColumn(
-            "is_warranty_expired",
-            (F.col("warranty_remaining_days") < 0).cast(IntegerType()),
+        return (
+            customers.select(
+                "customer_id",
+                "segment",
+                "city_tier",
+                "gender",
+                "age_years",
+                "acquisition_channel",
+                "product_category",
+                "product_price_inr",
+                "warranty_months",
+                "amc_active",
+                "first_purchase_date",
+                "observation_end_date",
+                "is_churned",
+                "duration_days",
+            )
+            .withColumn(
+                "tenure_days",
+                F.datediff(self._as_of_ts, F.col("first_purchase_date")),
+            )
+            .withColumn(
+                "warranty_expiry_date",
+                F.date_add(F.col("first_purchase_date"), F.col("warranty_months") * 30),
+            )
+            .withColumn(
+                "warranty_remaining_days",
+                F.datediff(F.col("warranty_expiry_date"), self._as_of_ts),
+            )
+            .withColumn(
+                "is_warranty_expired",
+                (F.col("warranty_remaining_days") < 0).cast(IntegerType()),
+            )
         )
 
     # ── RFM features ─────────────────────────────────────────────────────────
@@ -137,13 +142,17 @@ class FeatureEngineeringPipeline:
             F.max("transaction_date").alias("last_transaction_date"),
         )
 
-        return agg.withColumn(
-            "days_since_last_transaction",
-            F.datediff(self._as_of_ts, F.col("last_transaction_date")),
-        ).withColumn(
-            "months_since_last_transaction",
-            (F.col("days_since_last_transaction") / 30.44).cast(DoubleType()),
-        ).drop("last_transaction_date")
+        return (
+            agg.withColumn(
+                "days_since_last_transaction",
+                F.datediff(self._as_of_ts, F.col("last_transaction_date")),
+            )
+            .withColumn(
+                "months_since_last_transaction",
+                (F.col("days_since_last_transaction") / 30.44).cast(DoubleType()),
+            )
+            .drop("last_transaction_date")
+        )
 
     # ── Windowed transaction features ─────────────────────────────────────────
 
@@ -188,12 +197,12 @@ class FeatureEngineeringPipeline:
                     F.count("*").alias(f"total_events_{window_days}d"),
                     F.avg("session_duration_s").alias(f"avg_session_dur_s_{window_days}d"),
                     F.avg("pages_in_session").alias(f"avg_pages_{window_days}d"),
-                    F.sum(
-                        (F.col("event_type") == "product_comparison").cast(IntegerType())
-                    ).alias(f"product_comparison_events_{window_days}d"),
-                    F.sum(
-                        (F.col("event_type") == "wishlist_add").cast(IntegerType())
-                    ).alias(f"wishlist_add_events_{window_days}d"),
+                    F.sum((F.col("event_type") == "product_comparison").cast(IntegerType())).alias(
+                        f"product_comparison_events_{window_days}d"
+                    ),
+                    F.sum((F.col("event_type") == "wishlist_add").cast(IntegerType())).alias(
+                        f"wishlist_add_events_{window_days}d"
+                    ),
                 )
             )
             # Derive sessions-per-week from active_days
@@ -208,12 +217,15 @@ class FeatureEngineeringPipeline:
             result = result.join(f, on="customer_id", how="outer")
 
         # Last visit date → recency
-        last_visit = cs_dated.groupBy("customer_id").agg(
-            F.max("event_date").alias("last_web_visit_date")
-        ).withColumn(
-            "days_since_last_web_visit",
-            F.datediff(self._as_of_ts, F.col("last_web_visit_date")),
-        ).drop("last_web_visit_date")
+        last_visit = (
+            cs_dated.groupBy("customer_id")
+            .agg(F.max("event_date").alias("last_web_visit_date"))
+            .withColumn(
+                "days_since_last_web_visit",
+                F.datediff(self._as_of_ts, F.col("last_web_visit_date")),
+            )
+            .drop("last_web_visit_date")
+        )
 
         return result.join(last_visit, on="customer_id", how="outer")
 
@@ -232,22 +244,19 @@ class FeatureEngineeringPipeline:
         as_of = self._as_of_ts
 
         early_start = F.date_sub(as_of, 90)
-        early_end   = F.date_sub(as_of, 61)
-        late_start  = F.date_sub(as_of, 30)
+        early_end = F.date_sub(as_of, 61)
+        late_start = F.date_sub(as_of, 30)
 
         early = (
-            cs_dated
-            .filter(
-                (F.col("event_date") >= early_start) &
-                (F.col("event_date") <= early_end)
+            cs_dated.filter(
+                (F.col("event_date") >= early_start) & (F.col("event_date") <= early_end)
             )
             .groupBy("customer_id")
             .agg(F.countDistinct("event_date").alias("early_active_days"))
         )
 
         late = (
-            cs_dated
-            .filter(F.col("event_date") >= late_start)
+            cs_dated.filter(F.col("event_date") >= late_start)
             .groupBy("customer_id")
             .agg(F.countDistinct("event_date").alias("late_active_days"))
         )
@@ -257,8 +266,8 @@ class FeatureEngineeringPipeline:
             .withColumn(
                 "session_frequency_trend_90d",
                 (
-                    (F.coalesce(F.col("late_active_days"), F.lit(0)) / 30.0) -
-                    (F.coalesce(F.col("early_active_days"), F.lit(0)) / 30.0)
+                    (F.coalesce(F.col("late_active_days"), F.lit(0)) / 30.0)
+                    - (F.coalesce(F.col("early_active_days"), F.lit(0)) / 30.0)
                 ).cast(DoubleType()),
             )
             .select("customer_id", "session_frequency_trend_90d")
@@ -269,16 +278,21 @@ class FeatureEngineeringPipeline:
 
     def _support_features(self, sup: DataFrame) -> DataFrame:
         """Aggregate support ticket metrics."""
-        lifetime = sup.groupBy("customer_id").agg(
-            F.count("ticket_id").alias("total_support_tickets"),
-            F.avg("resolution_days").alias("avg_resolution_days"),
-            F.avg("is_escalated").alias("escalation_rate"),
-            F.avg("customer_satisfied").alias("avg_satisfaction"),
-            F.max("ticket_date").alias("last_support_date"),
-        ).withColumn(
-            "days_since_last_support_contact",
-            F.datediff(self._as_of_ts, F.col("last_support_date")),
-        ).drop("last_support_date")
+        lifetime = (
+            sup.groupBy("customer_id")
+            .agg(
+                F.count("ticket_id").alias("total_support_tickets"),
+                F.avg("resolution_days").alias("avg_resolution_days"),
+                F.avg("is_escalated").alias("escalation_rate"),
+                F.avg("customer_satisfied").alias("avg_satisfaction"),
+                F.max("ticket_date").alias("last_support_date"),
+            )
+            .withColumn(
+                "days_since_last_support_contact",
+                F.datediff(self._as_of_ts, F.col("last_support_date")),
+            )
+            .drop("last_support_date")
+        )
 
         frames = [lifetime]
         for window_days in [30, 90]:
@@ -300,30 +314,37 @@ class FeatureEngineeringPipeline:
 
     def _derived_features(self, df: DataFrame) -> DataFrame:
         """Composite scores derived from base features."""
-        df = df.withColumn(
-            "rfm_recency_score",
-            F.when(F.col("days_since_last_transaction") <= 30,  5)
-             .when(F.col("days_since_last_transaction") <= 90,  4)
-             .when(F.col("days_since_last_transaction") <= 180, 3)
-             .when(F.col("days_since_last_transaction") <= 270, 2)
-             .otherwise(1),
-        ).withColumn(
-            "rfm_frequency_score",
-            F.when(F.col("total_transactions") >= 10, 5)
-             .when(F.col("total_transactions") >= 6,  4)
-             .when(F.col("total_transactions") >= 4,  3)
-             .when(F.col("total_transactions") >= 2,  2)
-             .otherwise(1),
-        ).withColumn(
-            "rfm_monetary_score",
-            F.when(F.col("total_spend_inr") >= 200_000, 5)
-             .when(F.col("total_spend_inr") >= 100_000, 4)
-             .when(F.col("total_spend_inr") >= 60_000,  3)
-             .when(F.col("total_spend_inr") >= 30_000,  2)
-             .otherwise(1),
-        ).withColumn(
-            "rfm_score",
-            F.col("rfm_recency_score") + F.col("rfm_frequency_score") + F.col("rfm_monetary_score"),
+        df = (
+            df.withColumn(
+                "rfm_recency_score",
+                F.when(F.col("days_since_last_transaction") <= 30, 5)
+                .when(F.col("days_since_last_transaction") <= 90, 4)
+                .when(F.col("days_since_last_transaction") <= 180, 3)
+                .when(F.col("days_since_last_transaction") <= 270, 2)
+                .otherwise(1),
+            )
+            .withColumn(
+                "rfm_frequency_score",
+                F.when(F.col("total_transactions") >= 10, 5)
+                .when(F.col("total_transactions") >= 6, 4)
+                .when(F.col("total_transactions") >= 4, 3)
+                .when(F.col("total_transactions") >= 2, 2)
+                .otherwise(1),
+            )
+            .withColumn(
+                "rfm_monetary_score",
+                F.when(F.col("total_spend_inr") >= 200_000, 5)
+                .when(F.col("total_spend_inr") >= 100_000, 4)
+                .when(F.col("total_spend_inr") >= 60_000, 3)
+                .when(F.col("total_spend_inr") >= 30_000, 2)
+                .otherwise(1),
+            )
+            .withColumn(
+                "rfm_score",
+                F.col("rfm_recency_score")
+                + F.col("rfm_frequency_score")
+                + F.col("rfm_monetary_score"),
+            )
         )
 
         # Engagement score [0,1]: weighted combo of web activity + support satisfaction
@@ -334,10 +355,17 @@ class FeatureEngineeringPipeline:
                 F.greatest(
                     F.lit(0.0),
                     (
-                        0.5 * F.coalesce(F.col("avg_weekly_sessions_90d"), F.lit(0.0)) / 5.0 +
-                        0.3 * F.coalesce(F.col("avg_satisfaction"), F.lit(0.5)) +
-                        0.2 * (1.0 - F.least(F.lit(1.0),
-                               F.coalesce(F.col("days_since_last_transaction"), F.lit(365)) / 365.0))
+                        0.5 * F.coalesce(F.col("avg_weekly_sessions_90d"), F.lit(0.0)) / 5.0
+                        + 0.3 * F.coalesce(F.col("avg_satisfaction"), F.lit(0.5))
+                        + 0.2
+                        * (
+                            1.0
+                            - F.least(
+                                F.lit(1.0),
+                                F.coalesce(F.col("days_since_last_transaction"), F.lit(365))
+                                / 365.0,
+                            )
+                        )
                     ).cast(DoubleType()),
                 ),
             ),
@@ -352,7 +380,8 @@ class FeatureEngineeringPipeline:
         String columns get a sentinel.
         """
         fill_zero_cols = [
-            f.name for f in df.schema.fields
+            f.name
+            for f in df.schema.fields
             if isinstance(f.dataType, (DoubleType, IntegerType))
             and f.name not in ("customer_id", "is_churned", "duration_days", "age_years")
         ]

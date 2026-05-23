@@ -8,8 +8,14 @@ from typing import Optional
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
-    DateType, DoubleType, IntegerType, LongType, StringType,
-    StructField, StructType, TimestampType,
+    DateType,
+    DoubleType,
+    IntegerType,
+    LongType,
+    StringType,
+    StructField,
+    StructType,
+    TimestampType,
 )
 
 from src.utils.logger import get_logger
@@ -18,69 +24,77 @@ log = get_logger(__name__)
 
 # ── Explicit schemas (faster + safer than schema inference) ───────────────────
 
-CUSTOMERS_SCHEMA = StructType([
-    StructField("customer_id",          StringType(),  False),
-    StructField("registration_date",    DateType(),    False),
-    StructField("first_purchase_date",  DateType(),    False),
-    StructField("segment",              StringType(),  False),
-    StructField("city",                 StringType(),  False),
-    StructField("state",                StringType(),  False),
-    StructField("city_tier",            IntegerType(), False),
-    StructField("gender",               StringType(),  False),
-    StructField("age_years",            IntegerType(), True),
-    StructField("acquisition_channel",  StringType(),  False),
-    StructField("product_category",     StringType(),  False),
-    StructField("product_price_inr",    DoubleType(),  False),
-    StructField("warranty_months",      IntegerType(), False),
-    StructField("amc_active",           IntegerType(), False),
-    StructField("is_churned",           IntegerType(), False),
-    StructField("churn_date",           DateType(),    True),
-    StructField("observation_end_date", DateType(),    False),
-    StructField("duration_days",        IntegerType(), False),
-])
+CUSTOMERS_SCHEMA = StructType(
+    [
+        StructField("customer_id", StringType(), False),
+        StructField("registration_date", DateType(), False),
+        StructField("first_purchase_date", DateType(), False),
+        StructField("segment", StringType(), False),
+        StructField("city", StringType(), False),
+        StructField("state", StringType(), False),
+        StructField("city_tier", IntegerType(), False),
+        StructField("gender", StringType(), False),
+        StructField("age_years", IntegerType(), True),
+        StructField("acquisition_channel", StringType(), False),
+        StructField("product_category", StringType(), False),
+        StructField("product_price_inr", DoubleType(), False),
+        StructField("warranty_months", IntegerType(), False),
+        StructField("amc_active", IntegerType(), False),
+        StructField("is_churned", IntegerType(), False),
+        StructField("churn_date", DateType(), True),
+        StructField("observation_end_date", DateType(), False),
+        StructField("duration_days", IntegerType(), False),
+    ]
+)
 
-TRANSACTIONS_SCHEMA = StructType([
-    StructField("transaction_id",   StringType(),  False),
-    StructField("customer_id",      StringType(),  False),
-    StructField("transaction_date", DateType(),    False),
-    StructField("transaction_type", StringType(),  False),
-    StructField("product_category", StringType(),  True),
-    StructField("amount_inr",       DoubleType(),  False),
-    StructField("channel",          StringType(),  True),
-    StructField("is_returned",      IntegerType(), False),
-])
+TRANSACTIONS_SCHEMA = StructType(
+    [
+        StructField("transaction_id", StringType(), False),
+        StructField("customer_id", StringType(), False),
+        StructField("transaction_date", DateType(), False),
+        StructField("transaction_type", StringType(), False),
+        StructField("product_category", StringType(), True),
+        StructField("amount_inr", DoubleType(), False),
+        StructField("channel", StringType(), True),
+        StructField("is_returned", IntegerType(), False),
+    ]
+)
 
-CLICKSTREAM_SCHEMA = StructType([
-    StructField("event_id",           StringType(),  False),
-    StructField("customer_id",        StringType(),  False),
-    # Read as Long (INT64) to handle both TIMESTAMP(NANOS,false) written by older
-    # PyArrow and TIMESTAMP(MICROS) written by the fixed generator. Spark cannot
-    # create a Parquet row-converter for nanosecond timestamps. We cast to
-    # TimestampType below after loading.
-    StructField("event_timestamp",    LongType(),    False),
-    StructField("event_type",         StringType(),  False),
-    StructField("session_duration_s", IntegerType(), False),
-    StructField("pages_in_session",   IntegerType(), False),
-    StructField("device_type",        StringType(),  True),
-    StructField("utm_source",         StringType(),  True),
-])
+CLICKSTREAM_SCHEMA = StructType(
+    [
+        StructField("event_id", StringType(), False),
+        StructField("customer_id", StringType(), False),
+        # Read as Long (INT64) to handle both TIMESTAMP(NANOS,false) written by older
+        # PyArrow and TIMESTAMP(MICROS) written by the fixed generator. Spark cannot
+        # create a Parquet row-converter for nanosecond timestamps. We cast to
+        # TimestampType below after loading.
+        StructField("event_timestamp", LongType(), False),
+        StructField("event_type", StringType(), False),
+        StructField("session_duration_s", IntegerType(), False),
+        StructField("pages_in_session", IntegerType(), False),
+        StructField("device_type", StringType(), True),
+        StructField("utm_source", StringType(), True),
+    ]
+)
 
-SUPPORT_SCHEMA = StructType([
-    StructField("ticket_id",          StringType(),  False),
-    StructField("customer_id",        StringType(),  False),
-    StructField("ticket_date",        DateType(),    False),
-    StructField("category",           StringType(),  True),
-    StructField("resolution_days",    IntegerType(), False),
-    StructField("is_escalated",       IntegerType(), False),
-    StructField("is_resolved",        IntegerType(), False),
-    StructField("customer_satisfied", IntegerType(), True),
-    StructField("channel",            StringType(),  True),
-])
+SUPPORT_SCHEMA = StructType(
+    [
+        StructField("ticket_id", StringType(), False),
+        StructField("customer_id", StringType(), False),
+        StructField("ticket_date", DateType(), False),
+        StructField("category", StringType(), True),
+        StructField("resolution_days", IntegerType(), False),
+        StructField("is_escalated", IntegerType(), False),
+        StructField("is_resolved", IntegerType(), False),
+        StructField("customer_satisfied", IntegerType(), True),
+        StructField("channel", StringType(), True),
+    ]
+)
 
 _SCHEMA_MAP = {
-    "customers":      CUSTOMERS_SCHEMA,
-    "transactions":   TRANSACTIONS_SCHEMA,
-    "clickstream":    CLICKSTREAM_SCHEMA,
+    "customers": CUSTOMERS_SCHEMA,
+    "transactions": TRANSACTIONS_SCHEMA,
+    "clickstream": CLICKSTREAM_SCHEMA,
     "support_tickets": SUPPORT_SCHEMA,
 }
 

@@ -32,8 +32,12 @@ from src.models.parametric import fit_all_parametric
 from src.models.model_selector import ModelSelector
 from src.utils.logger import configure_logging, get_logger
 from src.utils.mlflow_utils import (
-    setup_mlflow, mlflow_run, log_params, log_metrics,
-    log_artifact_path, register_model,
+    setup_mlflow,
+    mlflow_run,
+    log_params,
+    log_metrics,
+    log_artifact_path,
+    register_model,
 )
 
 log = get_logger(__name__)
@@ -43,10 +47,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train XYZ churn survival models")
     parser.add_argument("--config", default="config/config.yaml")
     parser.add_argument("--run-date", default=None, help="Execution date YYYY-MM-DD")
-    parser.add_argument("--eval-only", action="store_true",
-                        help="Skip training; just evaluate the last run")
-    parser.add_argument("--register", action="store_true",
-                        help="Register champion model to MLflow registry")
+    parser.add_argument(
+        "--eval-only", action="store_true", help="Skip training; just evaluate the last run"
+    )
+    parser.add_argument(
+        "--register", action="store_true", help="Register champion model to MLflow registry"
+    )
     return parser.parse_args()
 
 
@@ -60,8 +66,7 @@ def load_features(cfg: dict) -> pd.DataFrame:
     feat_dir = Path(cfg["features"]["output_dir"]) / "features"
     if not feat_dir.exists() or not any(feat_dir.glob("part-*.parquet")):
         raise FileNotFoundError(
-            f"Feature matrix not found at {feat_dir}. "
-            "Run run_feature_engineering.py first."
+            f"Feature matrix not found at {feat_dir}. " "Run run_feature_engineering.py first."
         )
     log.info("Loading feature matrix", path=str(feat_dir))
     return pd.read_parquet(feat_dir)
@@ -71,10 +76,14 @@ def temporal_split(df: pd.DataFrame, train_cutoff: str) -> tuple[pd.DataFrame, p
     """Split by first_purchase_date — customers acquired before cutoff = train."""
     df["first_purchase_date"] = pd.to_datetime(df["first_purchase_date"])
     train = df[df["first_purchase_date"] <= pd.Timestamp(train_cutoff)].copy()
-    test  = df[df["first_purchase_date"] >  pd.Timestamp(train_cutoff)].copy()
-    log.info("Train/test split", train=len(train), test=len(test),
-             train_churn_rate=f"{train['is_churned'].mean():.2%}",
-             test_churn_rate=f"{test['is_churned'].mean():.2%}")
+    test = df[df["first_purchase_date"] > pd.Timestamp(train_cutoff)].copy()
+    log.info(
+        "Train/test split",
+        train=len(train),
+        test=len(test),
+        train_churn_rate=f"{train['is_churned'].mean():.2%}",
+        test_churn_rate=f"{test['is_churned'].mean():.2%}",
+    )
     return train, test
 
 
@@ -85,9 +94,9 @@ def main():
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    mlflow_cfg  = cfg["mlflow"]
-    obs_cfg     = cfg["observation"]
-    model_cfg   = cfg["models"]
+    mlflow_cfg = cfg["mlflow"]
+    obs_cfg = cfg["observation"]
+    model_cfg = cfg["models"]
 
     setup_mlflow(mlflow_cfg["tracking_uri"], mlflow_cfg["experiment_name"])
 
@@ -96,16 +105,20 @@ def main():
 
     run_name = f"training_{args.run_date or 'manual'}"
 
-    with mlflow_run(run_name=run_name, tags={"mode": "training", "run_date": args.run_date or "manual"}):
+    with mlflow_run(
+        run_name=run_name, tags={"mode": "training", "run_date": args.run_date or "manual"}
+    ):
 
         # ── Log run metadata ──────────────────────────────────────────────────
-        log_params({
-            "train_rows":       len(train_df),
-            "test_rows":        len(test_df),
-            "train_cutoff":     obs_cfg["train_cutoff_date"],
-            "churn_rate_train": round(float(train_df["is_churned"].mean()), 4),
-            "churn_rate_test":  round(float(test_df["is_churned"].mean()), 4),
-        })
+        log_params(
+            {
+                "train_rows": len(train_df),
+                "test_rows": len(test_df),
+                "train_cutoff": obs_cfg["train_cutoff_date"],
+                "churn_rate_train": round(float(train_df["is_churned"].mean()), 4),
+                "churn_rate_test": round(float(test_df["is_churned"].mean()), 4),
+            }
+        )
 
         # ── 1. Kaplan-Meier (baseline) ────────────────────────────────────────
         log.info("Fitting Kaplan-Meier …")
@@ -165,20 +178,24 @@ def main():
         param_models = fit_all_parametric(train_df)
         for dist_name, model in param_models.items():
             c_idx = model.compute_concordance_index(test_df)
-            log_metrics({
-                f"{dist_name}_c_index": c_idx,
-                f"{dist_name}_aic": model.aic,
-                f"{dist_name}_bic": model.bic,
-            })
+            log_metrics(
+                {
+                    f"{dist_name}_c_index": c_idx,
+                    f"{dist_name}_aic": model.aic,
+                    f"{dist_name}_bic": model.bic,
+                }
+            )
 
         # ── 4. Cross-validation ───────────────────────────────────────────────
         log.info("Running cross-validation …")
         selector = ModelSelector(cv_folds=model_cfg["model_selection"]["cv_folds"])
         cv_result = selector.cross_validate(train_df, model_name="cox_ph")
-        log_metrics({
-            "cv_c_index_mean": cv_result["c_index_mean"],
-            "cv_c_index_std":  cv_result["c_index_std"],
-        })
+        log_metrics(
+            {
+                "cv_c_index_mean": cv_result["c_index_mean"],
+                "cv_c_index_std": cv_result["c_index_std"],
+            }
+        )
         log.info("CV result", **{k: v for k, v in cv_result.items() if k != "c_indices"})
 
         # ── 5. Full model selection report ────────────────────────────────────

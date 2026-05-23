@@ -20,8 +20,9 @@ log = get_logger(__name__)
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate XYZ churn synthetic dataset")
     parser.add_argument("--config", default="config/config.yaml")
-    parser.add_argument("--n-customers", type=int, default=None,
-                        help="Override n_customers from config")
+    parser.add_argument(
+        "--n-customers", type=int, default=None, help="Override n_customers from config"
+    )
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--skip-validation", action="store_true")
     return parser.parse_args()
@@ -58,8 +59,13 @@ def main():
         reports = validator.validate_all(datasets, raise_on_failure=True)
         for name, report in reports.items():
             status = "PASS" if report.passed else "FAIL"
-            log.info("Validation result", dataset=name, status=status,
-                     errors=report.errors, warnings=report.warnings)
+            log.info(
+                "Validation result",
+                dataset=name,
+                status=status,
+                errors=report.errors,
+                warnings=report.warnings,
+            )
 
     log.info("Data generation complete")
 

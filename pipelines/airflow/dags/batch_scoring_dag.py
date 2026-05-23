@@ -18,13 +18,13 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 _DEFAULT_ARGS = {
-    "owner":            "data-science",
-    "depends_on_past":  False,
-    "start_date":       datetime(2024, 1, 1),
-    "retries":          2,
-    "retry_delay":      timedelta(minutes=10),
+    "owner": "data-science",
+    "depends_on_past": False,
+    "start_date": datetime(2024, 1, 1),
+    "retries": 2,
+    "retry_delay": timedelta(minutes=10),
     "email_on_failure": True,
-    "email":            ["mlops@xyz.in"],
+    "email": ["mlops@xyz.in"],
 }
 
 with DAG(
@@ -40,13 +40,22 @@ with DAG(
     # ── 1. Refresh features ───────────────────────────────────────────────────
     def refresh_features(**context):
         import subprocess
+
         score_date = context["ds"]
         result = subprocess.run(
-            ["python", "pipelines/scripts/run_feature_engineering.py",
-             "--config", "config/config.yaml",
-             "--mode", "score",
-             "--as-of-date", score_date],
-            capture_output=True, text=True, check=True,
+            [
+                "python",
+                "pipelines/scripts/run_feature_engineering.py",
+                "--config",
+                "config/config.yaml",
+                "--mode",
+                "score",
+                "--as-of-date",
+                score_date,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return result.stdout
 
@@ -59,12 +68,20 @@ with DAG(
     # ── 2. Run batch scoring ──────────────────────────────────────────────────
     def run_scoring(**context):
         import subprocess
+
         score_date = context["ds"]
         result = subprocess.run(
-            ["python", "pipelines/scripts/run_scoring.py",
-             "--config", "config/config.yaml",
-             "--score-date", score_date],
-            capture_output=True, text=True, check=True,
+            [
+                "python",
+                "pipelines/scripts/run_scoring.py",
+                "--config",
+                "config/config.yaml",
+                "--score-date",
+                score_date,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return result.stdout
 
@@ -78,15 +95,24 @@ with DAG(
     # ── 3. Validate score output ──────────────────────────────────────────────
     def validate_scores(**context):
         import subprocess
+
         score_date = context["ds"]
         result = subprocess.run(
-            ["python", "pipelines/scripts/run_scoring.py",
-             "--config", "config/config.yaml",
-             "--validate-only",
-             "--score-date", score_date],
-            capture_output=True, text=True, check=True,
+            [
+                "python",
+                "pipelines/scripts/run_scoring.py",
+                "--config",
+                "config/config.yaml",
+                "--validate-only",
+                "--score-date",
+                score_date,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         import re
+
         match = re.search(r'"drift_detected":\s*(true|false)', result.stdout)
         drift = match and match.group(1) == "true"
         context["ti"].xcom_push(key="drift_detected", value=drift)
@@ -123,12 +149,20 @@ with DAG(
         score_date = context["ds"]
         # In production: copy to S3 / GCS / ADLS / downstream DB
         import subprocess
+
         subprocess.run(
-            ["python", "pipelines/scripts/run_scoring.py",
-             "--config", "config/config.yaml",
-             "--export",
-             "--score-date", score_date],
-            capture_output=True, text=True, check=True,
+            [
+                "python",
+                "pipelines/scripts/run_scoring.py",
+                "--config",
+                "config/config.yaml",
+                "--export",
+                "--score-date",
+                score_date,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
     export_scores_task = PythonOperator(

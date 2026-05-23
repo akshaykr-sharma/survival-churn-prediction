@@ -37,37 +37,95 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # ── India-market reference data ───────────────────────────────────────────────
 CITIES = {
     1: [
-        "Mumbai", "Delhi", "Bengaluru", "Chennai", "Hyderabad",
-        "Kolkata", "Pune", "Ahmedabad",
+        "Mumbai",
+        "Delhi",
+        "Bengaluru",
+        "Chennai",
+        "Hyderabad",
+        "Kolkata",
+        "Pune",
+        "Ahmedabad",
     ],
     2: [
-        "Surat", "Jaipur", "Lucknow", "Kanpur", "Nagpur",
-        "Indore", "Bhopal", "Patna", "Vadodara", "Coimbatore",
-        "Ludhiana", "Agra", "Nashik", "Faridabad",
+        "Surat",
+        "Jaipur",
+        "Lucknow",
+        "Kanpur",
+        "Nagpur",
+        "Indore",
+        "Bhopal",
+        "Patna",
+        "Vadodara",
+        "Coimbatore",
+        "Ludhiana",
+        "Agra",
+        "Nashik",
+        "Faridabad",
     ],
     3: [
-        "Meerut", "Rajkot", "Varanasi", "Srinagar", "Jodhpur",
-        "Madurai", "Guwahati", "Raipur", "Chandigarh", "Kochi",
-        "Thiruvananthapuram", "Mysuru", "Hubli", "Tiruchirappalli",
-        "Dehradun", "Amritsar", "Ranchi", "Jabalpur", "Gwalior",
+        "Meerut",
+        "Rajkot",
+        "Varanasi",
+        "Srinagar",
+        "Jodhpur",
+        "Madurai",
+        "Guwahati",
+        "Raipur",
+        "Chandigarh",
+        "Kochi",
+        "Thiruvananthapuram",
+        "Mysuru",
+        "Hubli",
+        "Tiruchirappalli",
+        "Dehradun",
+        "Amritsar",
+        "Ranchi",
+        "Jabalpur",
+        "Gwalior",
     ],
 }
 
 STATES_BY_CITY = {
-    "Mumbai": "Maharashtra", "Delhi": "Delhi", "Bengaluru": "Karnataka",
-    "Chennai": "Tamil Nadu", "Hyderabad": "Telangana", "Kolkata": "West Bengal",
-    "Pune": "Maharashtra", "Ahmedabad": "Gujarat", "Surat": "Gujarat",
-    "Jaipur": "Rajasthan", "Lucknow": "Uttar Pradesh", "Kanpur": "Uttar Pradesh",
-    "Nagpur": "Maharashtra", "Indore": "Madhya Pradesh", "Bhopal": "Madhya Pradesh",
-    "Patna": "Bihar", "Vadodara": "Gujarat", "Coimbatore": "Tamil Nadu",
-    "Ludhiana": "Punjab", "Agra": "Uttar Pradesh", "Nashik": "Maharashtra",
-    "Faridabad": "Haryana", "Meerut": "Uttar Pradesh", "Rajkot": "Gujarat",
-    "Varanasi": "Uttar Pradesh", "Srinagar": "Jammu & Kashmir",
-    "Jodhpur": "Rajasthan", "Madurai": "Tamil Nadu", "Guwahati": "Assam",
-    "Raipur": "Chhattisgarh", "Chandigarh": "Chandigarh", "Kochi": "Kerala",
-    "Thiruvananthapuram": "Kerala", "Mysuru": "Karnataka", "Hubli": "Karnataka",
-    "Tiruchirappalli": "Tamil Nadu", "Dehradun": "Uttarakhand",
-    "Amritsar": "Punjab", "Ranchi": "Jharkhand", "Jabalpur": "Madhya Pradesh",
+    "Mumbai": "Maharashtra",
+    "Delhi": "Delhi",
+    "Bengaluru": "Karnataka",
+    "Chennai": "Tamil Nadu",
+    "Hyderabad": "Telangana",
+    "Kolkata": "West Bengal",
+    "Pune": "Maharashtra",
+    "Ahmedabad": "Gujarat",
+    "Surat": "Gujarat",
+    "Jaipur": "Rajasthan",
+    "Lucknow": "Uttar Pradesh",
+    "Kanpur": "Uttar Pradesh",
+    "Nagpur": "Maharashtra",
+    "Indore": "Madhya Pradesh",
+    "Bhopal": "Madhya Pradesh",
+    "Patna": "Bihar",
+    "Vadodara": "Gujarat",
+    "Coimbatore": "Tamil Nadu",
+    "Ludhiana": "Punjab",
+    "Agra": "Uttar Pradesh",
+    "Nashik": "Maharashtra",
+    "Faridabad": "Haryana",
+    "Meerut": "Uttar Pradesh",
+    "Rajkot": "Gujarat",
+    "Varanasi": "Uttar Pradesh",
+    "Srinagar": "Jammu & Kashmir",
+    "Jodhpur": "Rajasthan",
+    "Madurai": "Tamil Nadu",
+    "Guwahati": "Assam",
+    "Raipur": "Chhattisgarh",
+    "Chandigarh": "Chandigarh",
+    "Kochi": "Kerala",
+    "Thiruvananthapuram": "Kerala",
+    "Mysuru": "Karnataka",
+    "Hubli": "Karnataka",
+    "Tiruchirappalli": "Tamil Nadu",
+    "Dehradun": "Uttarakhand",
+    "Amritsar": "Punjab",
+    "Ranchi": "Jharkhand",
+    "Jabalpur": "Madhya Pradesh",
     "Gwalior": "Madhya Pradesh",
 }
 
@@ -76,48 +134,69 @@ SEGMENTS = ["student", "gamer", "professional", "smb", "creative"]
 PRODUCT_CATEGORIES = ["budget_pc", "mid_range_pc", "gaming_pc", "workstation"]
 
 PRICE_RANGES_INR = {
-    "budget_pc":    (28_000,  55_000),
+    "budget_pc": (28_000, 55_000),
     "mid_range_pc": (55_001, 100_000),
-    "gaming_pc":    (85_000, 200_000),
-    "workstation":  (110_000, 300_000),
+    "gaming_pc": (85_000, 200_000),
+    "workstation": (110_000, 300_000),
 }
 
 ACQUISITION_CHANNELS = [
-    "organic_search", "paid_search", "social_media",
-    "referral", "retail_store", "email_campaign",
+    "organic_search",
+    "paid_search",
+    "social_media",
+    "referral",
+    "retail_store",
+    "email_campaign",
 ]
 
 SEGMENT_PC_AFFINITY: dict[str, dict] = {
-    "student":      {"budget_pc": 0.65, "mid_range_pc": 0.25, "gaming_pc": 0.08, "workstation": 0.02},
-    "gamer":        {"budget_pc": 0.05, "mid_range_pc": 0.25, "gaming_pc": 0.65, "workstation": 0.05},
-    "professional": {"budget_pc": 0.10, "mid_range_pc": 0.40, "gaming_pc": 0.10, "workstation": 0.40},
-    "smb":          {"budget_pc": 0.20, "mid_range_pc": 0.45, "gaming_pc": 0.05, "workstation": 0.30},
-    "creative":     {"budget_pc": 0.05, "mid_range_pc": 0.20, "gaming_pc": 0.15, "workstation": 0.60},
+    "student": {"budget_pc": 0.65, "mid_range_pc": 0.25, "gaming_pc": 0.08, "workstation": 0.02},
+    "gamer": {"budget_pc": 0.05, "mid_range_pc": 0.25, "gaming_pc": 0.65, "workstation": 0.05},
+    "professional": {
+        "budget_pc": 0.10,
+        "mid_range_pc": 0.40,
+        "gaming_pc": 0.10,
+        "workstation": 0.40,
+    },
+    "smb": {"budget_pc": 0.20, "mid_range_pc": 0.45, "gaming_pc": 0.05, "workstation": 0.30},
+    "creative": {"budget_pc": 0.05, "mid_range_pc": 0.20, "gaming_pc": 0.15, "workstation": 0.60},
 }
 
 # Base Weibull survival parameters per segment (shape, scale in days)
 # Higher shape → more pronounced wear-out; lower scale → faster churn
 SURVIVAL_PARAMS: dict[str, tuple[float, float]] = {
-    "student":      (1.4, 550),   # moderate churn, medium tenure
-    "gamer":        (1.6, 700),   # lower churn, longer tenure
-    "professional": (1.2, 800),   # low churn, long tenure
-    "smb":          (1.1, 650),   # moderate churn
-    "creative":     (1.3, 720),   # low-medium churn
+    "student": (1.4, 550),  # moderate churn, medium tenure
+    "gamer": (1.6, 700),  # lower churn, longer tenure
+    "professional": (1.2, 800),  # low churn, long tenure
+    "smb": (1.1, 650),  # moderate churn
+    "creative": (1.3, 720),  # low-medium churn
 }
 
 SUPPORT_CATEGORIES = [
-    "hardware_failure", "software_issue", "warranty_claim",
-    "upgrade_query", "billing_issue", "delivery_issue", "general_query",
+    "hardware_failure",
+    "software_issue",
+    "warranty_claim",
+    "upgrade_query",
+    "billing_issue",
+    "delivery_issue",
+    "general_query",
 ]
 
 CLICKSTREAM_EVENT_TYPES = [
-    "page_view", "product_view", "product_comparison",
-    "wishlist_add", "cart_add", "checkout_start",
-    "support_chat", "spec_download", "video_watch",
+    "page_view",
+    "product_view",
+    "product_comparison",
+    "wishlist_add",
+    "cart_add",
+    "checkout_start",
+    "support_chat",
+    "spec_download",
+    "video_watch",
 ]
 
 
 # ── Main generator class ──────────────────────────────────────────────────────
+
 
 class SyntheticDataGenerator:
     """
@@ -183,31 +262,29 @@ class SyntheticDataGenerator:
 
         segments = rng.choice(SEGMENTS, size=n, p=[0.30, 0.20, 0.25, 0.15, 0.10])
         city_tiers = rng.choice([1, 2, 3], size=n, p=[0.40, 0.35, 0.25])
-        cities = [
-            rng.choice(CITIES[t]) for t in city_tiers
-        ]
+        cities = [rng.choice(CITIES[t]) for t in city_tiers]
         states = [STATES_BY_CITY.get(c, "Unknown") for c in cities]
 
         genders = rng.choice(["M", "F", "Other"], size=n, p=[0.60, 0.37, 0.03])
         ages = np.clip(rng.normal(32, 9, n).astype(int), 18, 65)
 
         channels = rng.choice(
-            ACQUISITION_CHANNELS, size=n,
+            ACQUISITION_CHANNELS,
+            size=n,
             p=[0.28, 0.22, 0.18, 0.12, 0.14, 0.06],
         )
 
-        product_categories = np.array([
-            rng.choice(
-                list(SEGMENT_PC_AFFINITY[seg].keys()),
-                p=list(SEGMENT_PC_AFFINITY[seg].values()),
-            )
-            for seg in segments
-        ])
+        product_categories = np.array(
+            [
+                rng.choice(
+                    list(SEGMENT_PC_AFFINITY[seg].keys()),
+                    p=list(SEGMENT_PC_AFFINITY[seg].values()),
+                )
+                for seg in segments
+            ]
+        )
 
-        prices = np.array([
-            rng.integers(*PRICE_RANGES_INR[pc])
-            for pc in product_categories
-        ])
+        prices = np.array([rng.integers(*PRICE_RANGES_INR[pc]) for pc in product_categories])
 
         warranty_months = rng.choice([12, 24], size=n, p=[0.55, 0.45])
         amc_active = rng.choice([0, 1], size=n, p=[0.65, 0.35])
@@ -215,9 +292,7 @@ class SyntheticDataGenerator:
         # Registration date: uniform across observation window minus 6 months tail
         reg_days_range = (self.obs_end - timedelta(days=180) - self.obs_start).days
         reg_offsets = rng.integers(0, reg_days_range, size=n)
-        reg_dates = pd.to_datetime(
-            [self.obs_start + timedelta(days=int(d)) for d in reg_offsets]
-        )
+        reg_dates = pd.to_datetime([self.obs_start + timedelta(days=int(d)) for d in reg_offsets])
 
         # First purchase 0–30 days after registration
         fp_offsets = rng.integers(0, 31, size=n)
@@ -241,30 +316,30 @@ class SyntheticDataGenerator:
         # Duration (survival time in days) — used directly in lifelines
         duration_days = pd.Series((observation_end - first_purchase_dates).days).clip(lower=1)
 
-        churn_date_series = pd.to_datetime(
-            np.where(is_churned, churn_dates.values, pd.NaT)
-        )
+        churn_date_series = pd.to_datetime(np.where(is_churned, churn_dates.values, pd.NaT))
 
-        df = pd.DataFrame({
-            "customer_id":          ids,
-            "registration_date":    reg_dates.date,
-            "first_purchase_date":  first_purchase_dates.date,
-            "segment":              segments,
-            "city":                 cities,
-            "state":                states,
-            "city_tier":            city_tiers,
-            "gender":               genders,
-            "age_years":            ages,
-            "acquisition_channel":  channels,
-            "product_category":     product_categories,
-            "product_price_inr":    prices.astype(float),
-            "warranty_months":      warranty_months,
-            "amc_active":           amc_active,
-            "is_churned":           is_churned,
-            "churn_date":           churn_date_series.date,
-            "observation_end_date": observation_end.date,
-            "duration_days":        duration_days.astype(int),
-        })
+        df = pd.DataFrame(
+            {
+                "customer_id": ids,
+                "registration_date": reg_dates.date,
+                "first_purchase_date": first_purchase_dates.date,
+                "segment": segments,
+                "city": cities,
+                "state": states,
+                "city_tier": city_tiers,
+                "gender": genders,
+                "age_years": ages,
+                "acquisition_channel": channels,
+                "product_category": product_categories,
+                "product_price_inr": prices.astype(float),
+                "warranty_months": warranty_months,
+                "amc_active": amc_active,
+                "is_churned": is_churned,
+                "churn_date": churn_date_series.date,
+                "observation_end_date": observation_end.date,
+                "duration_days": duration_days.astype(int),
+            }
+        )
 
         log.info(
             "Customers generated",
@@ -283,7 +358,9 @@ class SyntheticDataGenerator:
         for i, seg in enumerate(segments):
             shape, scale = SURVIVAL_PARAMS[seg]
             # Product-tier modifier: higher price → longer tenure
-            raw = weibull_min.rvs(c=shape, scale=scale, random_state=int(self.rng.integers(0, 2**31)))
+            raw = weibull_min.rvs(
+                c=shape, scale=scale, random_state=int(self.rng.integers(0, 2**31))
+            )
             # Inflate scale slightly for AMC segment (handled at transaction level)
             survival_days[i] = max(1, raw)
 
@@ -313,23 +390,30 @@ class SyntheticDataGenerator:
             duration = cust["duration_days"]
 
             # Number of transactions: Poisson, higher for loyal segments
-            base_lambda = {"student": 3.5, "gamer": 5.0, "professional": 4.5,
-                           "smb": 6.0, "creative": 4.0}[segment]
+            base_lambda = {
+                "student": 3.5,
+                "gamer": 5.0,
+                "professional": 4.5,
+                "smb": 6.0,
+                "creative": 4.0,
+            }[segment]
             # Churn reduces total transactions
             lambda_adj = base_lambda * (1.0 if not is_churned else 0.6)
             n_tx = max(1, int(rng.poisson(lambda_adj)))
 
             # First transaction is the initial PC purchase
-            records.append({
-                "transaction_id":   f"TX{str(tx_id_counter).zfill(9)}",
-                "customer_id":      cust["customer_id"],
-                "transaction_date": fp_date.date(),
-                "transaction_type": "initial_purchase",
-                "product_category": pc_cat,
-                "amount_inr":       float(price),
-                "channel":          cust["acquisition_channel"],
-                "is_returned":      0,
-            })
+            records.append(
+                {
+                    "transaction_id": f"TX{str(tx_id_counter).zfill(9)}",
+                    "customer_id": cust["customer_id"],
+                    "transaction_date": fp_date.date(),
+                    "transaction_type": "initial_purchase",
+                    "product_category": pc_cat,
+                    "amount_inr": float(price),
+                    "channel": cust["acquisition_channel"],
+                    "is_returned": 0,
+                }
+            )
             tx_id_counter += 1
 
             # Subsequent transactions (accessories, service, AMC renewal, upgrades)
@@ -343,9 +427,7 @@ class SyntheticDataGenerator:
                         rng.integers(1, max(2, int(max_days * 0.7)), size=n_tx - 1)
                     )
                 else:
-                    tx_day_offsets = sorted(
-                        rng.integers(1, max_days, size=n_tx - 1)
-                    )
+                    tx_day_offsets = sorted(rng.integers(1, max_days, size=n_tx - 1))
 
                 tx_types = rng.choice(
                     ["accessory", "service_visit", "amc_renewal", "software", "upgrade"],
@@ -357,16 +439,18 @@ class SyntheticDataGenerator:
                     if tx_date > obs_end:
                         break
                     amount = self._tx_amount(tx_type, price, rng)
-                    records.append({
-                        "transaction_id":   f"TX{str(tx_id_counter).zfill(9)}",
-                        "customer_id":      cust["customer_id"],
-                        "transaction_date": tx_date.date(),
-                        "transaction_type": tx_type,
-                        "product_category": pc_cat,
-                        "amount_inr":       float(amount),
-                        "channel":          rng.choice(["online", "store", "phone"]),
-                        "is_returned":      int(rng.random() < 0.03),
-                    })
+                    records.append(
+                        {
+                            "transaction_id": f"TX{str(tx_id_counter).zfill(9)}",
+                            "customer_id": cust["customer_id"],
+                            "transaction_date": tx_date.date(),
+                            "transaction_type": tx_type,
+                            "product_category": pc_cat,
+                            "amount_inr": float(amount),
+                            "channel": rng.choice(["online", "store", "phone"]),
+                            "is_returned": int(rng.random() < 0.03),
+                        }
+                    )
                     tx_id_counter += 1
 
         df = pd.DataFrame(records)
@@ -376,11 +460,11 @@ class SyntheticDataGenerator:
 
     def _tx_amount(self, tx_type: str, purchase_price: float, rng) -> float:
         ranges = {
-            "accessory":    (500,   8_000),
-            "service_visit":(300,   5_000),
-            "amc_renewal":  (3_000, 12_000),
-            "software":     (1_000, 15_000),
-            "upgrade":      (5_000, 40_000),
+            "accessory": (500, 8_000),
+            "service_visit": (300, 5_000),
+            "amc_renewal": (3_000, 12_000),
+            "software": (1_000, 15_000),
+            "upgrade": (5_000, 40_000),
         }
         lo, hi = ranges.get(tx_type, (500, 5_000))
         return float(rng.integers(lo, hi + 1))
@@ -401,8 +485,13 @@ class SyntheticDataGenerator:
             segment = cust["segment"]
 
             # Total events: higher engagement segments generate more events
-            base_events = {"student": 100, "gamer": 160, "professional": 90,
-                           "smb": 70, "creative": 110}[segment]
+            base_events = {
+                "student": 100,
+                "gamer": 160,
+                "professional": 90,
+                "smb": 70,
+                "creative": 110,
+            }[segment]
             if is_churned:
                 base_events = int(base_events * 0.55)  # churned customers less active
             n_events = max(5, int(rng.poisson(base_events)))
@@ -434,23 +523,24 @@ class SyntheticDataGenerator:
                 session_duration_s = int(rng.exponential(180))  # seconds
                 pages_in_session = max(1, int(rng.poisson(3.5)))
 
-                records.append({
-                    "event_id":            f"EVT{str(event_id_counter).zfill(10)}",
-                    "customer_id":         cust["customer_id"],
-                    "event_timestamp":     event_date,
-                    "event_type":          event_type,
-                    "session_duration_s":  session_duration_s,
-                    "pages_in_session":    pages_in_session,
-                    "device_type":         rng.choice(
-                                               ["desktop", "mobile", "tablet"],
-                                               p=[0.60, 0.30, 0.10],
-                                           ),
-                    "utm_source":          rng.choice(
-                                               ["google", "facebook", "direct",
-                                                "email", "organic", "youtube"],
-                                               p=[0.28, 0.18, 0.22, 0.12, 0.14, 0.06],
-                                           ),
-                })
+                records.append(
+                    {
+                        "event_id": f"EVT{str(event_id_counter).zfill(10)}",
+                        "customer_id": cust["customer_id"],
+                        "event_timestamp": event_date,
+                        "event_type": event_type,
+                        "session_duration_s": session_duration_s,
+                        "pages_in_session": pages_in_session,
+                        "device_type": rng.choice(
+                            ["desktop", "mobile", "tablet"],
+                            p=[0.60, 0.30, 0.10],
+                        ),
+                        "utm_source": rng.choice(
+                            ["google", "facebook", "direct", "email", "organic", "youtube"],
+                            p=[0.28, 0.18, 0.22, 0.12, 0.14, 0.06],
+                        ),
+                    }
+                )
                 event_id_counter += 1
 
         df = pd.DataFrame(records)
@@ -494,20 +584,22 @@ class SyntheticDataGenerator:
                 escalated = int(rng.random() < (0.15 if not is_churned else 0.30))
                 satisfied = int(rng.random() < (0.80 if not is_churned else 0.50))
 
-                records.append({
-                    "ticket_id":          f"TKT{str(ticket_counter).zfill(9)}",
-                    "customer_id":        cust["customer_id"],
-                    "ticket_date":        ticket_date.date(),
-                    "category":           category,
-                    "resolution_days":    resolution_days,
-                    "is_escalated":       escalated,
-                    "is_resolved":        int(rng.random() < 0.92),
-                    "customer_satisfied": satisfied,
-                    "channel":            rng.choice(
-                                              ["phone", "email", "chat", "walk_in"],
-                                              p=[0.35, 0.25, 0.30, 0.10],
-                                          ),
-                })
+                records.append(
+                    {
+                        "ticket_id": f"TKT{str(ticket_counter).zfill(9)}",
+                        "customer_id": cust["customer_id"],
+                        "ticket_date": ticket_date.date(),
+                        "category": category,
+                        "resolution_days": resolution_days,
+                        "is_escalated": escalated,
+                        "is_resolved": int(rng.random() < 0.92),
+                        "customer_satisfied": satisfied,
+                        "channel": rng.choice(
+                            ["phone", "email", "chat", "walk_in"],
+                            p=[0.35, 0.25, 0.30, 0.10],
+                        ),
+                    }
+                )
                 ticket_counter += 1
 
         df = pd.DataFrame(records)
@@ -538,8 +630,11 @@ class SyntheticDataGenerator:
 
             if series.dtype == object:
                 non_null = series.dropna()
-                if len(non_null) > 0 and isinstance(non_null.iloc[0], date) \
-                        and not isinstance(non_null.iloc[0], pd.Timestamp):
+                if (
+                    len(non_null) > 0
+                    and isinstance(non_null.iloc[0], date)
+                    and not isinstance(non_null.iloc[0], pd.Timestamp)
+                ):
                     # Python date objects → pa.date32() (INT32 + DATE logical type)
                     arr = pa.array(series.tolist(), type=pa.date32())
                     arrays.append(arr)

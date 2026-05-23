@@ -23,7 +23,9 @@ class BaseSurvivalModel(ABC):
         self._fitted = False
 
     @abstractmethod
-    def fit(self, df: pd.DataFrame, duration_col: str, event_col: str, **kwargs) -> "BaseSurvivalModel":
+    def fit(
+        self, df: pd.DataFrame, duration_col: str, event_col: str, **kwargs
+    ) -> "BaseSurvivalModel":
         """Fit the model on the training DataFrame."""
 
     @abstractmethod

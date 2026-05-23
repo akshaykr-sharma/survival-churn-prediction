@@ -71,12 +71,12 @@ class PerformanceMonitor:
         )
 
         record = {
-            "run_date":         run_date,
-            "c_index":          round(float(c_idx), 4),
-            "brier_score":      round(float(brier), 4),
-            "n_customers":      len(realised_df),
-            "n_churned":        int(realised_df[event_col].sum()),
-            "below_threshold":  c_idx < self.c_index_threshold,
+            "run_date": run_date,
+            "c_index": round(float(c_idx), 4),
+            "brier_score": round(float(brier), 4),
+            "n_customers": len(realised_df),
+            "n_churned": int(realised_df[event_col].sum()),
+            "below_threshold": c_idx < self.c_index_threshold,
         }
         self._history.append(record)
 
@@ -117,6 +117,7 @@ class PerformanceMonitor:
         Simplified version (no IPCW weighting).
         """
         import numpy as np
+
         # Only evaluate on customers whose observation covers the horizon
         mask = (durations >= horizon) | (events == 1)
         if mask.sum() == 0:

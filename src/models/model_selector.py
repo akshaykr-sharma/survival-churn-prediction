@@ -89,6 +89,7 @@ class ModelSelector:
         # KM C-index from concordance of median survival prediction
         km_median = km.predict_median_survival(test)
         from lifelines.utils import concordance_index
+
         c_idx = concordance_index(test[dur], km_median, test[evt])
 
         self.results["kaplan_meier"] = {
@@ -138,9 +139,7 @@ class ModelSelector:
     def _select_champion(self) -> None:
         """Select the model with highest C-index among covariate-adjusted models."""
         # Exclude KM from champion selection (no covariate adjustment)
-        candidates = {
-            k: v for k, v in self.results.items() if k != "kaplan_meier"
-        }
+        candidates = {k: v for k, v in self.results.items() if k != "kaplan_meier"}
         best_name = max(candidates, key=lambda k: candidates[k]["concordance_index"])
         self.best_model_name = best_name
         self.best_model = self._models[best_name]
@@ -161,15 +160,13 @@ class ModelSelector:
         """Stratified K-fold CV for a single model, returns CV metrics."""
         log.info("Cross-validation started", model=model_name, folds=self.cv_folds)
 
-        skf = StratifiedKFold(
-            n_splits=self.cv_folds, shuffle=True, random_state=self.random_seed
-        )
+        skf = StratifiedKFold(n_splits=self.cv_folds, shuffle=True, random_state=self.random_seed)
         c_indices = []
         strat_labels = df[stratify_col].astype(str) + "_" + df[event_col].astype(str)
 
         for fold, (train_idx, val_idx) in enumerate(skf.split(df, strat_labels)):
             fold_train = df.iloc[train_idx]
-            fold_val   = df.iloc[val_idx]
+            fold_val = df.iloc[val_idx]
 
             if model_name == "cox_ph":
                 model = CoxPHModel(penalizer=0.1)
@@ -188,10 +185,10 @@ class ModelSelector:
             "model": model_name,
             "cv_folds": self.cv_folds,
             "c_index_mean": round(float(np.mean(c_indices)), 4),
-            "c_index_std":  round(float(np.std(c_indices)), 4),
-            "c_index_min":  round(float(np.min(c_indices)), 4),
-            "c_index_max":  round(float(np.max(c_indices)), 4),
-            "c_indices":    [round(c, 4) for c in c_indices],
+            "c_index_std": round(float(np.std(c_indices)), 4),
+            "c_index_min": round(float(np.min(c_indices)), 4),
+            "c_index_max": round(float(np.max(c_indices)), 4),
+            "c_indices": [round(c, 4) for c in c_indices],
         }
         log.info(
             "Cross-validation complete",

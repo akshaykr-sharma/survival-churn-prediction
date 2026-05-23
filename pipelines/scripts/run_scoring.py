@@ -25,10 +25,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="XYZ churn batch scoring")
     parser.add_argument("--config", default="config/config.yaml")
     parser.add_argument("--score-date", default=datetime.utcnow().strftime("%Y-%m-%d"))
-    parser.add_argument("--validate-only", action="store_true",
-                        help="Only run score validation / drift check, skip scoring")
-    parser.add_argument("--export", action="store_true",
-                        help="Export scores to downstream systems")
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Only run score validation / drift check, skip scoring",
+    )
+    parser.add_argument("--export", action="store_true", help="Export scores to downstream systems")
     return parser.parse_args()
 
 
@@ -41,7 +43,7 @@ def main():
 
     spark_cfg = cfg["spark"]
     scoring_cfg = cfg["scoring"]
-    mlflow_cfg  = cfg["mlflow"]
+    mlflow_cfg = cfg["mlflow"]
     monitor_cfg = cfg["monitoring"]
 
     # ── 1. Spark session ──────────────────────────────────────────────────────
@@ -68,6 +70,7 @@ def main():
 
             # ── 3. Batch scoring ──────────────────────────────────────────────
             import mlflow
+
             mlflow.set_tracking_uri(mlflow_cfg["tracking_uri"])
 
             scorer = BatchScorer(
@@ -84,9 +87,7 @@ def main():
             log.info("Scores written", path=output_path)
 
         # ── 4. Drift detection ────────────────────────────────────────────────
-        score_path = str(
-            Path(scoring_cfg["output_dir"]) / f"score_date={args.score_date}"
-        )
+        score_path = str(Path(scoring_cfg["output_dir"]) / f"score_date={args.score_date}")
         if Path(score_path).exists():
             current_scores = pd.read_parquet(score_path)
 
@@ -113,8 +114,7 @@ def main():
 
         # ── 5. Export (stub — plug in your export target) ─────────────────────
         if args.export:
-            log.info("Exporting scores to downstream system …",
-                     score_date=args.score_date)
+            log.info("Exporting scores to downstream system …", score_date=args.score_date)
             # Example: copy to S3 / write to BigQuery / push to CRM
             log.info("Export complete (stub)")
 

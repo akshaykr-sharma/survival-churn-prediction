@@ -127,7 +127,8 @@ class KaplanMeierModel(BaseSurvivalModel):
             d1 = df[df[group_col] == g1]
             d2 = df[df[group_col] == g2]
             test = logrank_test(
-                d1[duration_col], d2[duration_col],
+                d1[duration_col],
+                d2[duration_col],
                 event_observed_A=d1[event_col],
                 event_observed_B=d2[event_col],
             )
@@ -156,8 +157,9 @@ class KaplanMeierModel(BaseSurvivalModel):
         return {
             "model_type": "kaplan_meier",
             "alpha": self.alpha,
-            "median_survival_days": float(self.fitter.median_survival_time_)
-            if self._fitted else None,
+            "median_survival_days": (
+                float(self.fitter.median_survival_time_) if self._fitted else None
+            ),
         }
 
     def get_summary_metrics(self) -> dict[str, float]:
@@ -165,9 +167,9 @@ class KaplanMeierModel(BaseSurvivalModel):
             return {}
         return {
             "median_survival_days": float(self.fitter.median_survival_time_),
-            "survival_prob_90d":   self.survival_prob_at(90),
-            "survival_prob_180d":  self.survival_prob_at(180),
-            "survival_prob_365d":  self.survival_prob_at(365),
+            "survival_prob_90d": self.survival_prob_at(90),
+            "survival_prob_180d": self.survival_prob_at(180),
+            "survival_prob_365d": self.survival_prob_at(365),
         }
 
     # ── Plot ──────────────────────────────────────────────────────────────────
@@ -190,9 +192,9 @@ class KaplanMeierModel(BaseSurvivalModel):
         ax.set_xlabel("Days since first purchase")
         ax.set_ylabel("Survival probability S(t)")
         ax.set_ylim(0, 1.05)
-        ax.axvline(90,  color="orange", linestyle="--", alpha=0.6, label="90d")
-        ax.axvline(180, color="red",    linestyle="--", alpha=0.6, label="180d")
-        ax.axvline(365, color="darkred",linestyle="--", alpha=0.6, label="365d")
+        ax.axvline(90, color="orange", linestyle="--", alpha=0.6, label="90d")
+        ax.axvline(180, color="red", linestyle="--", alpha=0.6, label="180d")
+        ax.axvline(365, color="darkred", linestyle="--", alpha=0.6, label="365d")
         ax.legend(loc="upper right")
         plt.tight_layout()
 

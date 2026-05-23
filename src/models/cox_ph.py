@@ -176,8 +176,7 @@ class CoxPHModel(BaseSurvivalModel):
 
         # 4. One-hot encode categoricals (drop_first avoids multicollinearity)
         subset = pd.concat(
-            [df[[duration_col, event_col]].reset_index(drop=True),
-             num_df.reset_index(drop=True)],
+            [df[[duration_col, event_col]].reset_index(drop=True), num_df.reset_index(drop=True)],
             axis=1,
         )
         for cat in cat_cols:
@@ -241,9 +240,7 @@ class CoxPHModel(BaseSurvivalModel):
         with columns: id_col, start_col, stop_col, event_col, covariate_cols.
         """
         log.info("Fitting Cox PH with TVC", rows=len(long_df))
-        cols = covariate_cols or [
-            c for c in _NUMERIC_COVARIATES if c in long_df.columns
-        ]
+        cols = covariate_cols or [c for c in _NUMERIC_COVARIATES if c in long_df.columns]
         keep = [id_col, start_col, stop_col, event_col] + cols
         fit_df = long_df[keep].fillna(0)
 
@@ -270,23 +267,20 @@ class CoxPHModel(BaseSurvivalModel):
             raise RuntimeError("Call fit() before predict_survival_function()")
         pred_df = self._prepare_features(df, self._duration_col, self._event_col, fit_mode=False)
         # Drop labels from prediction input
-        feat_cols = [c for c in pred_df.columns
-                     if c not in (self._duration_col, self._event_col)]
+        feat_cols = [c for c in pred_df.columns if c not in (self._duration_col, self._event_col)]
         return self.fitter.predict_survival_function(pred_df[feat_cols])
 
     def predict_median_survival(self, df: pd.DataFrame) -> pd.Series:
         if not self._fitted:
             raise RuntimeError("Not fitted.")
         pred_df = self._prepare_features(df, self._duration_col, self._event_col, fit_mode=False)
-        feat_cols = [c for c in pred_df.columns
-                     if c not in (self._duration_col, self._event_col)]
+        feat_cols = [c for c in pred_df.columns if c not in (self._duration_col, self._event_col)]
         return self.fitter.predict_median(pred_df[feat_cols])
 
     def predict_partial_hazard(self, df: pd.DataFrame) -> pd.Series:
         """Returns exp(β'x) — relative risk score per individual."""
         pred_df = self._prepare_features(df, self._duration_col, self._event_col, fit_mode=False)
-        feat_cols = [c for c in pred_df.columns
-                     if c not in (self._duration_col, self._event_col)]
+        feat_cols = [c for c in pred_df.columns if c not in (self._duration_col, self._event_col)]
         return self.fitter.predict_partial_hazard(pred_df[feat_cols])
 
     # ── Evaluation ────────────────────────────────────────────────────────────
@@ -331,9 +325,7 @@ class CoxPHModel(BaseSurvivalModel):
                 "test_proportional_hazard_assumption ignores its `df` arg; "
                 "Schoenfeld residuals are computed on the training data."
             )
-        result = proportional_hazard_test(
-            self.fitter, self._train_prepared, time_transform="rank"
-        )
+        result = proportional_hazard_test(self.fitter, self._train_prepared, time_transform="rank")
         violations = result.summary[result.summary["p"] < p_threshold].index.tolist()
         log.info(
             "PH test complete",
@@ -359,11 +351,11 @@ class CoxPHModel(BaseSurvivalModel):
 
     def get_model_params(self) -> dict[str, Any]:
         return {
-            "model_type":                  "cox_ph",
-            "penalizer":                   self.penalizer,
-            "l1_ratio":                    self.l1_ratio,
-            "baseline_estimation_method":  self.baseline_estimation_method,
-            "n_covariates":                len(self._numeric_covs) + len(self._dummy_cols),
+            "model_type": "cox_ph",
+            "penalizer": self.penalizer,
+            "l1_ratio": self.l1_ratio,
+            "baseline_estimation_method": self.baseline_estimation_method,
+            "n_covariates": len(self._numeric_covs) + len(self._dummy_cols),
         }
 
     # ── Plotting ──────────────────────────────────────────────────────────────
@@ -379,10 +371,17 @@ class CoxPHModel(BaseSurvivalModel):
         summary = self.get_hazard_ratios().nlargest(top_n, "coef", keep="all")
 
         fig, ax = plt.subplots(figsize=(10, 0.5 * len(summary) + 2))
-        ax.barh(summary["covariate"], summary["exp(coef)"], xerr=[
-            summary["exp(coef)"] - np.exp(summary["coef lower 95%"]),
-            np.exp(summary["coef upper 95%"]) - summary["exp(coef)"],
-        ], color="steelblue", ecolor="black", capsize=4)
+        ax.barh(
+            summary["covariate"],
+            summary["exp(coef)"],
+            xerr=[
+                summary["exp(coef)"] - np.exp(summary["coef lower 95%"]),
+                np.exp(summary["coef upper 95%"]) - summary["exp(coef)"],
+            ],
+            color="steelblue",
+            ecolor="black",
+            capsize=4,
+        )
         ax.axvline(1.0, color="red", linestyle="--", linewidth=1.2)
         ax.set_xlabel("Hazard Ratio (exp(coef))")
         ax.set_title(f"Cox PH — Top {top_n} Hazard Ratios")

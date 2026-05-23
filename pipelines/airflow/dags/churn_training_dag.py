@@ -23,13 +23,13 @@ from airflow.utils.trigger_rule import TriggerRule
 
 # ── DAG-level defaults ────────────────────────────────────────────────────────
 _DEFAULT_ARGS = {
-    "owner":            "data-science",
-    "depends_on_past":  False,
-    "start_date":       datetime(2024, 1, 1),
-    "retries":          2,
-    "retry_delay":      timedelta(minutes=15),
+    "owner": "data-science",
+    "depends_on_past": False,
+    "start_date": datetime(2024, 1, 1),
+    "retries": 2,
+    "retry_delay": timedelta(minutes=15),
     "email_on_failure": True,
-    "email":            ["data-science@xyz.in", "mlops@xyz.in"],
+    "email": ["data-science@xyz.in", "mlops@xyz.in"],
 }
 
 with DAG(
@@ -45,10 +45,12 @@ with DAG(
     # ── 1. Data validation ────────────────────────────────────────────────────
     def run_data_validation(**context):
         import subprocess
+
         result = subprocess.run(
-            ["python", "pipelines/scripts/run_validation.py",
-             "--config", "config/config.yaml"],
-            capture_output=True, text=True, check=True,
+            ["python", "pipelines/scripts/run_validation.py", "--config", "config/config.yaml"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         context["ti"].xcom_push(key="validation_passed", value=True)
         return result.stdout
@@ -62,11 +64,19 @@ with DAG(
     # ── 2. Feature engineering ────────────────────────────────────────────────
     def run_feature_engineering(**context):
         import subprocess
+
         result = subprocess.run(
-            ["python", "pipelines/scripts/run_feature_engineering.py",
-             "--config", "config/config.yaml",
-             "--mode", "train"],
-            capture_output=True, text=True, check=True,
+            [
+                "python",
+                "pipelines/scripts/run_feature_engineering.py",
+                "--config",
+                "config/config.yaml",
+                "--mode",
+                "train",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return result.stdout
 
@@ -79,12 +89,20 @@ with DAG(
     # ── 3. Train all models ───────────────────────────────────────────────────
     def run_model_training(**context):
         import subprocess
+
         run_date = context["ds"]  # Airflow execution date YYYY-MM-DD
         result = subprocess.run(
-            ["python", "pipelines/scripts/run_training.py",
-             "--config", "config/config.yaml",
-             "--run-date", run_date],
-            capture_output=True, text=True, check=True,
+            [
+                "python",
+                "pipelines/scripts/run_training.py",
+                "--config",
+                "config/config.yaml",
+                "--run-date",
+                run_date,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         # Parse champion model name from stdout for downstream tasks
         context["ti"].xcom_push(key="champion_model", value="cox_ph")
@@ -100,14 +118,22 @@ with DAG(
     # ── 4. Evaluate models ────────────────────────────────────────────────────
     def run_evaluation(**context):
         import subprocess
+
         result = subprocess.run(
-            ["python", "pipelines/scripts/run_training.py",
-             "--config", "config/config.yaml",
-             "--eval-only"],
-            capture_output=True, text=True, check=True,
+            [
+                "python",
+                "pipelines/scripts/run_training.py",
+                "--config",
+                "config/config.yaml",
+                "--eval-only",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         # Push C-index for the quality gate below
         import json, re
+
         match = re.search(r'"c_index":\s*([\d.]+)', result.stdout)
         c_index = float(match.group(1)) if match else 0.0
         context["ti"].xcom_push(key="c_index", value=c_index)
@@ -137,11 +163,18 @@ with DAG(
     # ── 6. Register champion ──────────────────────────────────────────────────
     def register_model(**context):
         import subprocess
+
         result = subprocess.run(
-            ["python", "pipelines/scripts/run_training.py",
-             "--config", "config/config.yaml",
-             "--register"],
-            capture_output=True, text=True, check=True,
+            [
+                "python",
+                "pipelines/scripts/run_training.py",
+                "--config",
+                "config/config.yaml",
+                "--register",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return result.stdout
 

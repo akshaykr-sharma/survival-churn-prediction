@@ -13,22 +13,26 @@ class TestDriftDetector:
     def _make_df(self, n=1000, shifted=False, seed=42):
         rng = np.random.default_rng(seed)
         shift = 5.0 if shifted else 0.0
-        return pd.DataFrame({
-            "days_since_last_transaction": rng.normal(90 + shift, 60, n).clip(0),
-            "avg_weekly_sessions_90d":     rng.exponential(2 + shift, n).clip(0),
-            "engagement_score":            rng.beta(2, 5, n),
-            "segment": rng.choice(["student", "gamer", "professional", "smb", "creative"], n),
-            "city_tier": rng.choice([1, 2, 3], n),
-        })
+        return pd.DataFrame(
+            {
+                "days_since_last_transaction": rng.normal(90 + shift, 60, n).clip(0),
+                "avg_weekly_sessions_90d": rng.exponential(2 + shift, n).clip(0),
+                "engagement_score": rng.beta(2, 5, n),
+                "segment": rng.choice(["student", "gamer", "professional", "smb", "creative"], n),
+                "city_tier": rng.choice([1, 2, 3], n),
+            }
+        )
 
     def test_no_drift_on_same_distribution(self):
         ref = self._make_df(1000, shifted=False, seed=0)
         cur = self._make_df(1000, shifted=False, seed=1)
         detector = DriftDetector(psi_threshold=0.20)
-        report = detector.run(ref, cur,
-                              numeric_cols=["days_since_last_transaction",
-                                            "avg_weekly_sessions_90d"],
-                              categorical_cols=["segment"])
+        report = detector.run(
+            ref,
+            cur,
+            numeric_cols=["days_since_last_transaction", "avg_weekly_sessions_90d"],
+            categorical_cols=["segment"],
+        )
         drifted = report[report["is_drifted"]]
         # Should detect very few or zero drifted features
         assert len(drifted) <= 1
@@ -37,9 +41,9 @@ class TestDriftDetector:
         ref = self._make_df(2000, shifted=False, seed=0)
         cur = self._make_df(2000, shifted=True, seed=99)
         detector = DriftDetector(psi_threshold=0.10)
-        report = detector.run(ref, cur,
-                              numeric_cols=["days_since_last_transaction",
-                                            "avg_weekly_sessions_90d"])
+        report = detector.run(
+            ref, cur, numeric_cols=["days_since_last_transaction", "avg_weekly_sessions_90d"]
+        )
         drifted = report[report["is_drifted"]]
         assert len(drifted) >= 1
 
@@ -47,9 +51,9 @@ class TestDriftDetector:
         ref = self._make_df(500)
         cur = self._make_df(500)
         detector = DriftDetector()
-        report = detector.run(ref, cur,
-                              numeric_cols=["engagement_score"],
-                              categorical_cols=["city_tier"])
+        report = detector.run(
+            ref, cur, numeric_cols=["engagement_score"], categorical_cols=["city_tier"]
+        )
         for col in ["feature", "type", "psi", "is_drifted"]:
             assert col in report.columns
 

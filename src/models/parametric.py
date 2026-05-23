@@ -39,18 +39,29 @@ from src.utils.logger import get_logger
 log = get_logger(__name__)
 
 _COVARIATE_COLS = [
-    "tenure_days", "product_price_inr", "warranty_months", "amc_active",
-    "total_transactions", "days_since_last_transaction", "avg_transaction_value_inr",
-    "tx_count_30d", "tx_count_90d", "tx_amount_90d",
-    "avg_weekly_sessions_90d", "days_since_last_web_visit",
+    "tenure_days",
+    "product_price_inr",
+    "warranty_months",
+    "amc_active",
+    "total_transactions",
+    "days_since_last_transaction",
+    "avg_transaction_value_inr",
+    "tx_count_30d",
+    "tx_count_90d",
+    "tx_amount_90d",
+    "avg_weekly_sessions_90d",
+    "days_since_last_web_visit",
     "session_frequency_trend_90d",
-    "total_support_tickets", "escalation_rate",
-    "rfm_score", "engagement_score", "is_warranty_expired",
+    "total_support_tickets",
+    "escalation_rate",
+    "rfm_score",
+    "engagement_score",
+    "is_warranty_expired",
 ]
 
 _DISTRIBUTION_MAP = {
-    "weibull":      WeibullAFTFitter,
-    "log_normal":   LogNormalAFTFitter,
+    "weibull": WeibullAFTFitter,
+    "log_normal": LogNormalAFTFitter,
     "log_logistic": LogLogisticAFTFitter,
 }
 
@@ -153,9 +164,7 @@ class ParametricSurvivalModel(BaseSurvivalModel):
         sf = self.predict_survival_function(df)
         idx = sf.index.get_indexer([90], method="nearest")[0]
         risk_score = 1.0 - sf.iloc[idx].values
-        c_idx = concordance_index(
-            df[self._duration_col], -risk_score, df[self._event_col]
-        )
+        c_idx = concordance_index(df[self._duration_col], -risk_score, df[self._event_col])
         return float(c_idx)
 
     @property
@@ -168,9 +177,9 @@ class ParametricSurvivalModel(BaseSurvivalModel):
 
     def get_model_params(self) -> dict[str, Any]:
         params = {
-            "model_type":   f"parametric_{self.distribution}",
+            "model_type": f"parametric_{self.distribution}",
             "distribution": self.distribution,
-            "penalizer":    self.penalizer,
+            "penalizer": self.penalizer,
             "n_covariates": len(self._covariate_cols),
         }
         if self._fitted:
@@ -197,8 +206,7 @@ class ParametricSurvivalModel(BaseSurvivalModel):
             ax.plot(sf.index, sf[col], alpha=0.2, color="steelblue", linewidth=0.8)
 
         # Overlay population mean
-        ax.plot(sf.index, sf.mean(axis=1), color="darkred",
-                linewidth=2.5, label="Population mean")
+        ax.plot(sf.index, sf.mean(axis=1), color="darkred", linewidth=2.5, label="Population mean")
 
         ax.set_xlabel("Days since first purchase")
         ax.set_ylabel("Survival probability S(t)")
@@ -228,6 +236,7 @@ class ParametricSurvivalModel(BaseSurvivalModel):
 
 
 # ── Convenience: fit all three and compare ────────────────────────────────────
+
 
 def fit_all_parametric(
     df: pd.DataFrame,
