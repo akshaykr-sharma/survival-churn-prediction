@@ -57,3 +57,10 @@ Thumbs.db
 *.env
 secrets/
 credentials/
+
+# Personal/local docs — generated PDFs, scratch notes, etc.
+XYZ_Churn_Survival_Pipeline_Complete.pdf
+generate_project_pdf.py
+*.local.md
+*.scratch
+full_log.txt
